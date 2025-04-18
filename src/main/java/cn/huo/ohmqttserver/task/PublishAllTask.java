@@ -15,8 +15,9 @@ public class PublishAllTask {
 	@Autowired
 	private MqttServer mqttServer;
 
-	@Scheduled(fixedDelay = 1000)
+	@Scheduled(fixedDelay = 100000)
 	public void run() {
+		System.out.println("PublishAllTask run");
 		mqttServer.publishAll("/test/123", "mica最牛皮".getBytes(StandardCharsets.UTF_8));
 	}
 

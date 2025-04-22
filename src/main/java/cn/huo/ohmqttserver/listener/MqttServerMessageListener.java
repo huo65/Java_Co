@@ -1,5 +1,6 @@
 package cn.huo.ohmqttserver.listener;
 
+import cn.huo.ohmqttserver.service.AliveService;
 import org.dromara.mica.mqtt.codec.MqttPublishMessage;
 import org.dromara.mica.mqtt.codec.MqttQoS;
 import org.dromara.mica.mqtt.core.server.event.IMqttMessageListener;
@@ -24,9 +25,18 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	private ApplicationContext applicationContext;
 	private MqttServerTemplate mqttServerTemplate;
 
+	private AliveService aliveService;
+
 	@Override
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
-		logger.info("context:{} clientId:{} message:{} payload:{}", context, clientId, message, new String(message.payload(), StandardCharsets.UTF_8));
+		logger.info("context:{} topic:{} clientId:{} message:{} payload:{}", context,topic ,clientId, message, new String(message.payload(), StandardCharsets.UTF_8));
+		if ("/test/123".equals(topic)){
+			aliveService.initAliveList();
+			mqttServerTemplate.getClients().forEach(clientInfo -> {
+				logger.info("clientInfo:{}", clientInfo);
+				aliveService.addNode(clientInfo.getClientId());
+			});
+		}
 	}
 
 //	框架推荐做法，性能损失小
@@ -34,5 +44,6 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	public void afterSingletonsInstantiated() {
 		// 单利 bean 初始化完成之后从 ApplicationContext 中获取 bean
 		mqttServerTemplate = applicationContext.getBean(MqttServerTemplate.class);
+		aliveService = applicationContext.getBean(AliveService.class);
 	}
 }

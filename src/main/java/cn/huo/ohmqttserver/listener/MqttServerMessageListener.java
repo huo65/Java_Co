@@ -30,13 +30,13 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	@Override
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
 		logger.info("context:{} topic:{} clientId:{} message:{} payload:{}", context,topic ,clientId, message, new String(message.payload(), StandardCharsets.UTF_8));
-		if ("/test/123".equals(topic)){
-			aliveService.initAliveList();
-			mqttServerTemplate.getClients().forEach(clientInfo -> {
-				logger.info("clientInfo:{}", clientInfo);
-				aliveService.addNode(clientInfo.getClientId());
-			});
-		}
+//		if ("/test/123".equals(topic)){
+//			aliveService.initAliveList();
+//			mqttServerTemplate.getClients().forEach(clientInfo -> {
+//				logger.info("clientInfo:{}", clientInfo);
+//				aliveService.addNode(clientInfo.getClientId());
+//			});
+//		}
 	}
 
 //	框架推荐做法，性能损失小

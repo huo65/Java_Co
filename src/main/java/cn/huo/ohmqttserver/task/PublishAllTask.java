@@ -33,13 +33,13 @@ public class PublishAllTask {
 	 */
 	@Scheduled(fixedDelay = 12000)
 	public void alive() {
-		System.out.println("PublishAllTask alive");
 		Set<String> aliveList = aliveService.getAliveList();
 		String message = null;
 		if (aliveList!= null && !aliveList.isEmpty()) {
 			message = "{\"aliveDevice\":[" + String.join(",", aliveList) + "]}";
 		}
 		if (message != null) {
+			System.out.println("PublishAllTask alive");
 			mqttServer.publishAll("/device/list", message.getBytes(StandardCharsets.UTF_8));
 		}
 	}

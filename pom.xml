@@ -40,6 +40,35 @@
             <artifactId>mica-mqtt-server-spring-boot-starter</artifactId>
             <version>2.4.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
+        </dependency>
+        <!-- springBoot JPA的起步依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- MySQL连接驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.moeaframework</groupId>
+            <artifactId>moeaframework</artifactId>
+            <version>2.13 </version>
+        </dependency>
+
+
+
 
 
         <dependency>

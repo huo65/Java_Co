@@ -20,7 +20,6 @@ public class OmegaOptimizer {
 
 	public static double[] optimize(List<TaskSample> samples) {
 		Algorithm nsga2 = getAlgorithm(samples);
-
 		NondominatedPopulation result = nsga2.getResult();
 
 		Solution best = null;
@@ -52,6 +51,7 @@ public class OmegaOptimizer {
 
 	private static Algorithm getAlgorithm(List<TaskSample> samples) {
 		TaskModelEvaluator evaluator = new TaskModelEvaluator(samples);
+		evaluator.trainModel();
 		Problem problem = new OmegaOptimizationProblem(evaluator);
 
 

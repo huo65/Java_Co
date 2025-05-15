@@ -32,10 +32,10 @@ public class OmegaOptimizationProblem extends AbstractProblem {
         }
 
         double f1 = evaluator.evaluateDurationWithOmega(omega);  // 目标1：任务耗时
-        double f2 = evaluator.evaluateLoadVariance(omega);       // 目标2：资源负载波动
+//        double f2 = evaluator.evaluateLoadVariance(omega);       // 目标2：资源负载波动
 
         solution.setObjective(0, f1);
-        solution.setObjective(1, f2);
+//        solution.setObjective(1, f2);
     }
 
     @Override

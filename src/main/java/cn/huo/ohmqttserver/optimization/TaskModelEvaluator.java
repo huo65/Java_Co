@@ -1,29 +1,102 @@
 package cn.huo.ohmqttserver.optimization;
 
+import org.apache.commons.math3.linear.*;
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 import java.util.List;
 
+/**
+ * @author huozj
+ */
 public class TaskModelEvaluator {
 
     private final List<TaskSample> samples;
+	private double[] beta;
 
     public TaskModelEvaluator(List<TaskSample> samples) {
         this.samples = samples;
     }
+	public void trainModel(){
+//		以TaskSample中的数据，用线性回归模型来拟合duration和其余4个属性之间的关系
+		int n = samples.size();
+		double[] y = new double[n];         // duration
+		double[][] x = new double[n][4];    // 特征向量：cpu, mem, power, storage
 
-    // 预测：load 越小 -> duration 越短（可更复杂地拟合）
-    public double evaluateDurationWithOmega(double[] omega) {
-        return samples.stream()
-            .mapToDouble(sample -> {
-                double load = sample.computeLoad(omega);
-                return Math.abs(sample.duration - load); // 简化目标函数
-            }).average().orElse(Double.MAX_VALUE);
+
+
+		for (int i = 0; i < n; i++) {
+			TaskSample ts = samples.get(i);
+			y[i] = ts.duration;
+			x[i][0] = ts.choseNode.cpuUtil;
+			x[i][1] = ts.choseNode.memFree;
+			x[i][2] = ts.choseNode.powerRemain;
+			x[i][3] = ts.choseNode.storageRatio;
+		}
+
+		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
+		regression.newSampleData(y, x);
+		this.beta = regression.estimateRegressionParameters(); // β₀, β₁ ~ β₄
     }
 
-    // 附加目标：资源使用波动越小越好（提高系统稳定性）
-    public double evaluateLoadVariance(double[] omega) {
-        double mean = samples.stream().mapToDouble(s -> s.computeLoad(omega)).average().orElse(0);
-        return samples.stream()
-                .mapToDouble(s -> Math.pow(s.computeLoad(omega) - mean, 2))
-                .average().orElse(0);
-    }
+	private double predict(double cpuUtil, double memFree, double powerRemain, double storageRatio) {
+		if (beta == null) {
+			throw new IllegalStateException("模型尚未训练");
+		}
+
+		return beta[0] + beta[1]*cpuUtil + beta[2]*memFree + beta[3]*powerRemain + beta[4]*storageRatio;
+	}
+
+
+//	    // 预测执行时间
+//    public double evaluateDurationWithOmega(double[] omega) {
+//        return samples.stream()
+//            .mapToDouble(sample -> {
+//                double load = sample.computeLoad(omega);
+//                return Math.abs(sample.duration - load); // 简化目标函数
+//            }).average().orElse(Double.MAX_VALUE);
+//    }
+	public double evaluateDurationWithOmega(double[] omega) {
+		double totalDuration = 0.0;
+
+		for (TaskSample task : samples) {
+			NodeStatus bestNode = null;
+			double minLoad = Double.MAX_VALUE;
+
+			for (NodeStatus node : task.nodes) {
+				// 计算负载评分 S_i^load
+				double load = omega[0] * node.cpuUtil
+					+ omega[1] * node.memFree
+					+ omega[2] * node.powerRemain
+					+ omega[3] * node.storageRatio;
+
+				if (load < minLoad) {
+					minLoad = load;
+					bestNode = node;
+				}
+			}
+
+			// 用 DurationPredictor 预测该任务在最优节点上的耗时
+			double predictedDuration = 0;
+			if (bestNode != null) {
+				predictedDuration = predict(
+					bestNode.cpuUtil,
+					bestNode.memFree,
+					bestNode.powerRemain,
+					bestNode.storageRatio
+				);
+			}
+
+			totalDuration += predictedDuration;
+		}
+
+		return totalDuration;
+	}
+
+
+
+//	// 附加目标：资源使用波动越小越好（提高系统稳定性）
+//    public double evaluateLoadVariance(double[] omega) {
+//
+//    }
 }

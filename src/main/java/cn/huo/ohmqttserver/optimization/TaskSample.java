@@ -4,6 +4,8 @@ package cn.huo.ohmqttserver.optimization;
 //import jakarta.persistence.Id;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author huozj
  * <a href="https://blog.csdn.net/qq_41320700/article/details/144031519">...</a>
@@ -13,28 +15,21 @@ import lombok.Data;
 public class TaskSample {
 //	@Id
 	private Long id;
-	public double cpuUtil;
-	public double memFree;
-	public double powerRemain;
-	public double storageRatio;
+
+	List<NodeStatus> nodes;
+
+	NodeStatus choseNode;
+
 	public double duration;
 
-	public TaskSample(double cpuUtil, double memFree, double powerRemain, double storageRatio, double duration) {
-		this.cpuUtil = cpuUtil;
-		this.memFree = memFree;
-		this.powerRemain = powerRemain;
-		this.storageRatio = storageRatio;
+	public TaskSample(List<NodeStatus> nodes, NodeStatus choseNode, double duration) {
+		this.nodes = nodes;
+		this.choseNode = choseNode;
 		this.duration = duration;
 	}
 
 	public TaskSample() {
-
 	}
 
-	public double computeLoad(double[] omega) {
-		return omega[0] * cpuUtil +
-			omega[1] * memFree +
-			omega[2] * powerRemain +
-			omega[3] * storageRatio;
-	}
+
 }

@@ -76,7 +76,7 @@ public class TaskModelEvaluator {
 				}
 			}
 
-			// 用 DurationPredictor 预测该任务在最优节点上的耗时
+			// 用 训练出的回归模型 预测该任务在最优节点上的耗时
 			double predictedDuration = 0;
 			if (bestNode != null) {
 				predictedDuration = predict(

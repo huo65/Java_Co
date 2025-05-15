@@ -75,7 +75,7 @@ public class OmegaOptimizer {
                 }
         );
 
-		int maxEvaluations = 5000;
+		int maxEvaluations = 20;
 		int evaluations = 0;
 		while (evaluations < maxEvaluations) {
 			nsga2.step();

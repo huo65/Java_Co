@@ -42,7 +42,9 @@ public class OmegaOptimizationProblem extends AbstractProblem {
     public Solution newSolution() {
         Solution solution = new Solution(4, 2);
         for (int i = 0; i < 4; i++) {
-            solution.setVariable(i, new RealVariable(0.0, 1.0));
+			RealVariable realVariable = new RealVariable(0.0, 1.0);
+			realVariable.randomize();
+			solution.setVariable(i, realVariable);//// ω 在 [0,1] 范围内
         }
         return solution;
     }

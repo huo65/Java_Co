@@ -19,39 +19,7 @@ public class OmegaOptimizer {
 
 
 	public static double[] optimize(List<TaskSample> samples) {
-		TaskModelEvaluator evaluator = new TaskModelEvaluator(samples);
-		Problem problem = new OmegaOptimizationProblem(evaluator);
-
-
-		Variation variation = new CompoundVariation(
-			new SBX(1.0, 15),
-			new PM(1.0 / 4.0, 0.1)
-		);
-
-		Algorithm nsga2 = new NSGAII(
-			problem,
-			new NondominatedSortingPopulation(),
-			null,
-			new TournamentSelection(2),
-			variation,
-			new Initialization() {
-				@Override
-				public Solution[] initialize() {
-					Solution[] pop = new Solution[100];
-					for (int i = 0; i < 100; i++) {
-						pop[i] = problem.newSolution();
-					}
-					return pop;
-				}
-			}
-		);
-
-		int maxEvaluations = 5000;
-		int evaluations = 0;
-		while (evaluations < maxEvaluations) {
-			nsga2.step();
-			evaluations++;
-		}
+		Algorithm nsga2 = getAlgorithm(samples);
 
 		NondominatedPopulation result = nsga2.getResult();
 
@@ -80,5 +48,39 @@ public class OmegaOptimizer {
 		}
 
 		return omega;
+	}
+
+	private static Algorithm getAlgorithm(List<TaskSample> samples) {
+		TaskModelEvaluator evaluator = new TaskModelEvaluator(samples);
+		Problem problem = new OmegaOptimizationProblem(evaluator);
+
+
+		Variation variation = new CompoundVariation(
+			new SBX(1.0, 15),
+			new PM(1.0 / 4.0, 0.1)
+		);
+
+		Algorithm nsga2 = new NSGAII(
+			problem,
+			new NondominatedSortingPopulation(),
+			null,
+			new TournamentSelection(2),
+			variation,
+                () -> {
+                    Solution[] pop = new Solution[100];
+                    for (int i = 0; i < 100; i++) {
+                        pop[i] = problem.newSolution();
+                    }
+                    return pop;
+                }
+        );
+
+		int maxEvaluations = 5000;
+		int evaluations = 0;
+		while (evaluations < maxEvaluations) {
+			nsga2.step();
+			evaluations++;
+		}
+		return nsga2;
 	}
 }

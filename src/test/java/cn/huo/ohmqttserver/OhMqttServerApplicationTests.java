@@ -14,11 +14,16 @@ class OhMqttServerApplicationTests {
 	@Test
 	void contextLoads() {
 		List<TaskSample> samples = Arrays.asList(
+			new TaskSample(0.7, 0.3, 0.8, 0.5, 19),
+			new TaskSample(0.6, 0.5, 0.6, 0.7, 10),
+			new TaskSample(0.8, 0.2, 0.7, 0.4, 12),
+			new TaskSample(0.4, 0.6, 0.5, 0.6, 11),
+			new TaskSample(0.5, 0.4, 0.6, 0.5, 11),
 			new TaskSample(0.7, 0.3, 0.8, 0.5, 12),
 			new TaskSample(0.6, 0.5, 0.6, 0.7, 10),
-			new TaskSample(0.8, 0.2, 0.7, 0.4, 15),
-			new TaskSample(0.4, 0.6, 0.5, 0.6, 9)
-			// 从数据库加载更多调度数据
+			new TaskSample(0.8, 0.2, 0.7, 0.4, 12),
+			new TaskSample(0.4, 0.6, 0.5, 0.6, 11),
+			new TaskSample(0.5, 0.4, 0.6, 0.5, 11)
 		);
 
 		double[] omega = OmegaOptimizer.optimize(samples);

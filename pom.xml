@@ -66,6 +66,11 @@
             <artifactId>moeaframework</artifactId>
             <version>2.13 </version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
 
 
 

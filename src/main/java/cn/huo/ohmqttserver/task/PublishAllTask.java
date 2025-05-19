@@ -29,7 +29,11 @@ public class PublishAllTask {
 	@Scheduled(fixedDelay = 15000)
 	public void run() {
 		System.out.println("PublishAllTask run");
-		mqttServer.publishAll("/test/123", "huo测试连接".getBytes(StandardCharsets.UTF_8));
+		long currentTimeMillis = System.currentTimeMillis();
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("timeStamp", currentTimeMillis);
+		String message = jsonObject.toString();
+		mqttServer.publishAll("/test/123", message.getBytes(StandardCharsets.UTF_8));
 	}
 
 	/**

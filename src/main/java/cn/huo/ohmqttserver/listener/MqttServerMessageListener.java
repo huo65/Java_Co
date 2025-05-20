@@ -14,6 +14,9 @@ import org.tio.core.ChannelContext;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 
+import static cn.huo.ohmqttserver.optimization.NodeInfo.addNodeInfo;
+import static cn.huo.ohmqttserver.optimization.NodeInfo.updateNodeInfo;
+
 /**
  * 消息监听
  * @author huozj
@@ -28,9 +31,14 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	@Override
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
 		logger.info("context:{} topic:{} clientId:{} message:{} payload:{}", context,topic ,clientId, message, new String(message.payload(), StandardCharsets.UTF_8));
+		if("/device/status".equals(topic)){
+//			updateNodeInfo();
+		}
 		if ("task/assign".equals(topic)){
 
+
 		}
+
 	}
 
 //	框架推荐做法，性能损失小

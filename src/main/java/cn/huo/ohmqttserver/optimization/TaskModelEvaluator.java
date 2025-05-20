@@ -1,9 +1,7 @@
 package cn.huo.ohmqttserver.optimization;
 
-import org.apache.commons.math3.linear.*;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
+
 import java.util.List;
 
 /**
@@ -27,11 +25,11 @@ public class TaskModelEvaluator {
 
 		for (int i = 0; i < n; i++) {
 			TaskSample ts = samples.get(i);
-			y[i] = ts.duration;
-			x[i][0] = ts.choseNode.cpuUtil;
-			x[i][1] = ts.choseNode.memFree;
-			x[i][2] = ts.choseNode.powerRemain;
-			x[i][3] = ts.choseNode.storageRatio;
+			y[i] = ts.getDuration();
+			x[i][0] = ts.getChoseNode().cpuUtil;
+			x[i][1] = ts.getChoseNode().memFree;
+			x[i][2] = ts.getChoseNode().powerRemain;
+			x[i][3] = ts.getChoseNode().storageRatio;
 		}
 
 		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
@@ -63,7 +61,7 @@ public class TaskModelEvaluator {
 			NodeStatus bestNode = null;
 			double minLoad = Double.MAX_VALUE;
 
-			for (NodeStatus node : task.nodes) {
+			for (NodeStatus node : task.getNodes()) {
 				// 计算负载评分 S_i^load
 				double load = omega[0] * node.cpuUtil
 					+ omega[1] * node.memFree

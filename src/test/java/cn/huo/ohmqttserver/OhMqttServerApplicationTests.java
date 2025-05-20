@@ -3,7 +3,9 @@ package cn.huo.ohmqttserver;
 import cn.huo.ohmqttserver.optimization.OmegaOptimizer;
 import cn.huo.ohmqttserver.optimization.TaskSample;
 import cn.huo.ohmqttserver.optimization.NodeStatus;
+import cn.huo.ohmqttserver.service.TaskSampleRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
@@ -11,6 +13,20 @@ import java.util.List;
 
 @SpringBootTest
 class OhMqttServerApplicationTests {
+	@Autowired
+	private TaskSampleRepository taskSampleRepository;
+
+	@Test
+	public void saveSample() {
+		NodeStatus node1 = new NodeStatus(0.7, 0.3, 0.8, 0.5);
+		NodeStatus node2 = new NodeStatus(0.4, 0.7, 0.4, 0.5);
+		NodeStatus node3 = new NodeStatus(0.6, 0.8, 0.6, 0.3);
+
+		List<NodeStatus> nodeList = Arrays.asList(node1, node2, node3);
+		TaskSample task = new TaskSample(nodeList, node1, 12.0);
+
+		taskSampleRepository.save(task);
+	}
 
 	@Test
 	void contextLoads() {

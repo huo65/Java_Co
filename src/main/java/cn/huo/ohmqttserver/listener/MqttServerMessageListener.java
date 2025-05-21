@@ -1,6 +1,5 @@
 package cn.huo.ohmqttserver.listener;
 
-import cn.huo.ohmqttserver.service.AliveService;
 import org.dromara.mica.mqtt.codec.MqttPublishMessage;
 import org.dromara.mica.mqtt.codec.MqttQoS;
 import org.dromara.mica.mqtt.core.server.event.IMqttMessageListener;
@@ -14,8 +13,7 @@ import org.tio.core.ChannelContext;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 
-import static cn.huo.ohmqttserver.optimization.NodeInfo.addNodeInfo;
-import static cn.huo.ohmqttserver.optimization.NodeInfo.updateNodeInfo;
+import static cn.huo.ohmqttserver.optimization.NodeInfo.*;
 
 /**
  * 消息监听
@@ -32,10 +30,11 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
 		logger.info("context:{} topic:{} clientId:{} message:{} payload:{}", context,topic ,clientId, message, new String(message.payload(), StandardCharsets.UTF_8));
 		if("/device/status".equals(topic)){
-//			updateNodeInfo();
+			String statusMessage = new String(message.payload());
+			parseAndUpdateNodeInfo(statusMessage);
 		}
 		if ("task/assign".equals(topic)){
-
+			String taskMessage = new String(message.payload());
 
 		}
 

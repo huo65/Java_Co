@@ -2,6 +2,7 @@ package cn.huo.ohmqttserver.optimization;
 
 import jakarta.persistence.Entity;
 import lombok.Data;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -58,5 +59,36 @@ public class NodeInfo {
     // 获取所有节点信息
     public static Map<String, NodeInfo> getAllNodeInfos() {
         return new HashMap<>(nodeInfoMap);
+    }
+    public static void parseAndUpdateNodeInfo(String statusMessage) {
+        try {
+            JSONObject root = new JSONObject(statusMessage);
+
+            // 获取外层 deviceName 和 score
+            String deviceName = root.optString("deviceName");
+            double score = Double.parseDouble(root.optString("score", "0.0"));
+
+            // 获取 params 对象
+            JSONObject params = root.optJSONObject("params");
+            if (params == null) {
+                System.err.println("Missing 'params' in message.");
+                return;
+            }
+
+            // 提取各项指标
+            double cpuUsage = params.optDouble("cpuUsage", 0.0);
+            double memoryUsage = params.optDouble("memoryUsage", 0.0);
+            double storageFree = params.optDouble("storageFree", 0.0);
+            double batteryLevel = params.optDouble("batteryLevel", 0.0);
+
+            // 调用 NodeInfo 的更新方法
+            NodeInfo.updateNodeInfo(deviceName, batteryLevel, memoryUsage, cpuUsage, storageFree, score);
+
+            System.out.println("Updated NodeInfo for device: " + deviceName);
+
+        } catch (Exception e) {
+            System.err.println("Error parsing status message: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

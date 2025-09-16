@@ -40,7 +40,7 @@ public class PublishAllTask {
 	}
 
 	/**
-	 * 存活节点广播
+	 * 存活节点列表定时更新
 	 */
 	@Scheduled(fixedDelay = 12000)
 	public void alive() {
@@ -54,6 +54,17 @@ public class PublishAllTask {
 			mqttServer.publishAll("/device/list", message.getBytes(StandardCharsets.UTF_8));
 		}
 	}
+	/**
+	 * 参数定时更新
+	 */
+	@Scheduled(fixedDelay = 50000)
+	public void updateParameter() {
+		System.out.println("PublishAllTask update");
+		double[] param = optimizationService.updateParam();
+		String message = createParamMessage(param);
+		mqttServer.publishAll("/optimization/param", message.getBytes(StandardCharsets.UTF_8));
+	}
+
 	public String createAliveMessage(Set<String> aliveList) {
 		List<String> sortedList = new ArrayList<>(aliveList); // Set -> List
 		JSONArray jsonArray = new JSONArray();
@@ -65,13 +76,6 @@ public class PublishAllTask {
 		jsonObject.put("aliveDevice", jsonArray);
 
 		return jsonObject.toString();
-	}
-	@Scheduled(fixedDelay = 50000)
-	public void updateParameter() {
-		System.out.println("PublishAllTask update");
-		double[] param = optimizationService.updateParam();
-		String message = createParamMessage(param);
-		mqttServer.publishAll("/optimization/param", message.getBytes(StandardCharsets.UTF_8));
 	}
 	public String createParamMessage(double[] param) {
 		JSONArray jsonArray = new JSONArray();

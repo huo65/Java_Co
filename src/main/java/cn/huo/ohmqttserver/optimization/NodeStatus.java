@@ -17,10 +17,10 @@ public class NodeStatus {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	public double cpuUtil;
+	public double cpuIdle;
 	public double memFree;
 	public double powerRemain;
-	public double storageRatio;
+	public double storageIdle;
 
 	@ManyToOne
 	@JoinColumn(name = "task_sample_id")
@@ -30,11 +30,11 @@ public class NodeStatus {
 	public void setTaskSample(TaskSample taskSample) {
 		this.taskSample = taskSample;
 	}
-	public NodeStatus(double cpuUtil, double memFree, double powerRemain, double storageRatio) {
-		this.cpuUtil = cpuUtil;
+	public NodeStatus(double cpuIdle, double memFree, double powerRemain, double storageIdle) {
+		this.cpuIdle = cpuIdle;
 		this.memFree = memFree;
 		this.powerRemain = powerRemain;
-		this.storageRatio = storageRatio;
+		this.storageIdle = storageIdle;
 	}
 
 	// Getter/Setter 略

@@ -1,6 +1,5 @@
 package cn.huo.ohmqttserver.optimization;
 
-import jakarta.persistence.Entity;
 import lombok.Data;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
@@ -14,13 +13,13 @@ public class NodeInfo {
     // 设备产品名称
     private String deviceName;
     // 电池电量百分比
-    private double batteryLevel;
+    private double powerRemain;
     // 内存占用
     private double memoryUsage;
     // CPU 占用率
     private double cpuUsage;
     // 剩余存储空间
-    private double storageFree;
+    private double storageRemain;
 
     // 静态集合，用于维护所有 NodeInfo 实例，以 deviceName 为键
     private static final Map<String, NodeInfo> nodeInfoMap = new HashMap<>();
@@ -29,10 +28,10 @@ public class NodeInfo {
                     double cpuUsage, double storageFree, double score) {
         NodeInfo nodeInfo = new NodeInfo();
         nodeInfo.deviceName = deviceName;
-        nodeInfo.batteryLevel = batteryLevel;
+        nodeInfo.powerRemain = batteryLevel;
         nodeInfo.memoryUsage = memoryUsage;
         nodeInfo.cpuUsage = cpuUsage;
-        nodeInfo.storageFree = storageFree;
+        nodeInfo.storageRemain = storageFree;
         nodeInfoMap.put(deviceName, nodeInfo);
     }
 
@@ -42,10 +41,10 @@ public class NodeInfo {
                                       double cpuUsage, double storageFree, double score) {
         NodeInfo nodeInfo = nodeInfoMap.get(deviceName);
         if (nodeInfo != null) {
-            nodeInfo.batteryLevel = batteryLevel;
+            nodeInfo.powerRemain = batteryLevel;
             nodeInfo.memoryUsage = memoryUsage;
             nodeInfo.cpuUsage = cpuUsage;
-            nodeInfo.storageFree = storageFree;
+            nodeInfo.storageRemain = storageFree;
         } else {
             addNodeInfo(deviceName, batteryLevel, memoryUsage, cpuUsage, storageFree, score);
         }

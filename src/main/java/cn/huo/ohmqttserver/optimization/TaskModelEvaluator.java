@@ -26,8 +26,8 @@ public class TaskModelEvaluator {
 		for (int i = 0; i < n; i++) {
 			TaskSample ts = samples.get(i);
 			y[i] = ts.getDuration();
-			x[i][0] = ts.getChoseNode().cpuUtil;
-			x[i][1] = ts.getChoseNode().memUse;
+			x[i][0] = ts.getChoseNode().cpuUsage;
+			x[i][1] = ts.getChoseNode().memoryUsage;
 			x[i][2] = ts.getChoseNode().powerRemain;
 			x[i][3] = ts.getChoseNode().storageRemain;
 		}
@@ -63,8 +63,8 @@ public class TaskModelEvaluator {
 
 			for (NodeStatus node : task.getNodes()) {
 				// 计算负载评分 S_i^load
-				double load = omega[0] * node.cpuUtil
-					+ omega[1] * node.memUse
+				double load = omega[0] * node.cpuUsage
+					+ omega[1] * node.memoryUsage
 					+ omega[2] * node.powerRemain
 					+ omega[3] * node.storageRemain;
 
@@ -78,8 +78,8 @@ public class TaskModelEvaluator {
 			double predictedDuration = 0;
 			if (bestNode != null) {
 				predictedDuration = predict(
-					bestNode.cpuUtil,
-					bestNode.memUse,
+					bestNode.cpuUsage,
+					bestNode.memoryUsage,
 					bestNode.powerRemain,
 					bestNode.storageRemain
 				);

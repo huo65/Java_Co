@@ -17,8 +17,8 @@ public class NodeStatus {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	public double cpuUtil;
-	public double memUse;
+	public double cpuUsage;
+	public double memoryUsage;
 	public double powerRemain;
 	public double storageRemain;
 
@@ -30,9 +30,9 @@ public class NodeStatus {
 	public void setTaskSample(TaskSample taskSample) {
 		this.taskSample = taskSample;
 	}
-	public NodeStatus(double cpuUtil, double memFree, double powerRemain, double storageRatio) {
-		this.cpuUtil = cpuUtil;
-		this.memUse = memFree;
+	public NodeStatus(double cpuUsage, double memFree, double powerRemain, double storageRatio) {
+		this.cpuUsage = cpuUsage;
+		this.memoryUsage = memFree;
 		this.powerRemain = powerRemain;
 		this.storageRemain = storageRatio;
 	}

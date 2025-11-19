@@ -1,5 +1,9 @@
 package cn.huo.ohmqttserver.listener;
 
+import cn.huo.ohmqttserver.optimization.NodeInfo;
+import cn.huo.ohmqttserver.optimization.NodeStatus;
+import cn.huo.ohmqttserver.service.AliveService;
+import lombok.val;
 import org.dromara.mica.mqtt.codec.MqttPublishMessage;
 import org.dromara.mica.mqtt.codec.MqttQoS;
 import org.dromara.mica.mqtt.core.server.event.IMqttMessageListener;
@@ -12,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.tio.core.ChannelContext;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import static cn.huo.ohmqttserver.optimization.NodeInfo.*;
 
@@ -25,6 +31,10 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	@Autowired
 	private ApplicationContext applicationContext;
 	private MqttServerTemplate mqttServerTemplate;
+    @Autowired
+    private NodeInfo nodeInfo;
+	@Autowired
+	private AliveService aliveService;
 
 	@Override
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
@@ -35,6 +45,15 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 		}
 		if ("task/assign".equals(topic)){
 			String taskMessage = new String(message.payload());
+			val allNodeInfos = getAllNodeInfos();
+//			TODO 存储任务样本（除了完成时间）
+			List<NodeStatus> nodeStatusList = new ArrayList<>();
+			aliveService.getAliveList().forEach(deviceName -> {
+				val nodeInfo = allNodeInfos.get(deviceName);
+				if (nodeInfo != null) {
+					nodeStatusList.add(new NodeStatus());
+				}
+			});
 
 		}
 

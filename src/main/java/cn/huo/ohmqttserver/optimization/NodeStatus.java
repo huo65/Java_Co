@@ -21,6 +21,7 @@ public class NodeStatus {
 	public double memoryUsage;
 	public double powerRemain;
 	public double storageRemain;
+	public double latency;
 
 	@ManyToOne
 	@JoinColumn(name = "task_sample_id")
@@ -30,11 +31,12 @@ public class NodeStatus {
 	public void setTaskSample(TaskSample taskSample) {
 		this.taskSample = taskSample;
 	}
-	public NodeStatus(double cpuUsage, double memFree, double powerRemain, double storageRatio) {
+	public NodeStatus(double cpuUsage, double memoryUsage, double powerRemain, double storageRemain, double latency) {
 		this.cpuUsage = cpuUsage;
-		this.memoryUsage = memFree;
+		this.memoryUsage = memoryUsage;
 		this.powerRemain = powerRemain;
-		this.storageRemain = storageRatio;
+		this.storageRemain = storageRemain;
+		this.latency = latency;
 	}
 
 	// Getter/Setter 略

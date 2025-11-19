@@ -14,39 +14,43 @@ public class NodeInfo {
     private String deviceName;
     // 电池电量百分比
     private double powerRemain;
-    // 内存占用
+    // 内存占用率
     private double memoryUsage;
     // CPU 占用率
     private double cpuUsage;
     // 剩余存储空间
     private double storageRemain;
+//    网络延迟
+    private double latency;
 
     // 静态集合，用于维护所有 NodeInfo 实例，以 deviceName 为键
     private static final Map<String, NodeInfo> nodeInfoMap = new HashMap<>();
 
     public static void addNodeInfo(String deviceName, double batteryLevel, double memoryUsage,
-                    double cpuUsage, double storageFree, double score) {
+                    double cpuUsage, double storageFree, double latency,double score) {
         NodeInfo nodeInfo = new NodeInfo();
         nodeInfo.deviceName = deviceName;
         nodeInfo.powerRemain = batteryLevel;
         nodeInfo.memoryUsage = memoryUsage;
         nodeInfo.cpuUsage = cpuUsage;
         nodeInfo.storageRemain = storageFree;
+        nodeInfo.latency = latency;
         nodeInfoMap.put(deviceName, nodeInfo);
     }
 
 
     // 更新指定 deviceName 的 NodeInfo 信息
     public static void updateNodeInfo(String deviceName, double batteryLevel, double memoryUsage,
-                                      double cpuUsage, double storageFree, double score) {
+                                      double cpuUsage, double storageFree, double latency,double score) {
         NodeInfo nodeInfo = nodeInfoMap.get(deviceName);
         if (nodeInfo != null) {
             nodeInfo.powerRemain = batteryLevel;
             nodeInfo.memoryUsage = memoryUsage;
             nodeInfo.cpuUsage = cpuUsage;
             nodeInfo.storageRemain = storageFree;
+            nodeInfo.latency = latency;
         } else {
-            addNodeInfo(deviceName, batteryLevel, memoryUsage, cpuUsage, storageFree, score);
+            addNodeInfo(deviceName, batteryLevel, memoryUsage, cpuUsage, storageFree, latency, score);
         }
     }
 
@@ -79,9 +83,10 @@ public class NodeInfo {
             double memoryUsage = params.optDouble("memoryUsage", 0.0);
             double storageFree = params.optDouble("storageFree", 0.0);
             double batteryLevel = params.optDouble("batteryLevel", 0.0);
+            double latency = params.optDouble("latency", 0.0);
 
             // 调用 NodeInfo 的更新方法
-            NodeInfo.updateNodeInfo(deviceName, batteryLevel, memoryUsage, cpuUsage, storageFree, score);
+            NodeInfo.updateNodeInfo(deviceName, batteryLevel, memoryUsage, cpuUsage, storageFree,latency, score);
 
             System.out.println("Updated NodeInfo for device: " + deviceName);
 

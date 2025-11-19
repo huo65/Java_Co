@@ -20,6 +20,8 @@ public class TaskSample {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	private String taskId;
+
 	// 候选节点列表（多个 NodeStatus）
 	@OneToMany(mappedBy = "taskSample", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<NodeStatus> nodes = new ArrayList<>();
@@ -30,7 +32,8 @@ public class TaskSample {
 
 	private double duration;
 
-	public TaskSample(List<NodeStatus> nodes, NodeStatus choseNode, double duration) {
+	public TaskSample(String taskId,List<NodeStatus> nodes, NodeStatus choseNode, double duration) {
+		this.taskId = taskId;
 		this.nodes = nodes;
 		this.choseNode = choseNode;
 		this.duration = duration;

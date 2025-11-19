@@ -2,7 +2,10 @@ package cn.huo.ohmqttserver.listener;
 
 import cn.huo.ohmqttserver.optimization.NodeInfo;
 import cn.huo.ohmqttserver.optimization.NodeStatus;
+import cn.huo.ohmqttserver.optimization.TaskInfo;
+import cn.huo.ohmqttserver.optimization.TaskSample;
 import cn.huo.ohmqttserver.service.AliveService;
+import cn.huo.ohmqttserver.service.TaskSampleRepository;
 import lombok.val;
 import org.dromara.mica.mqtt.codec.MqttPublishMessage;
 import org.dromara.mica.mqtt.codec.MqttQoS;
@@ -17,7 +20,9 @@ import org.tio.core.ChannelContext;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static cn.huo.ohmqttserver.optimization.NodeInfo.*;
 
@@ -31,10 +36,10 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	@Autowired
 	private ApplicationContext applicationContext;
 	private MqttServerTemplate mqttServerTemplate;
-    @Autowired
-    private NodeInfo nodeInfo;
 	@Autowired
 	private AliveService aliveService;
+	@Autowired
+	private TaskSampleRepository taskSampleRepository;
 
 	@Override
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
@@ -43,18 +48,35 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 			String statusMessage = new String(message.payload());
 			parseAndUpdateNodeInfo(statusMessage);
 		}
-		if ("task/assign".equals(topic)){
+		if ("/task/assign".equals(topic)){
 			String taskMessage = new String(message.payload());
+			TaskInfo taskInfo = TaskInfo.parseTaskInfo(taskMessage);
 			val allNodeInfos = getAllNodeInfos();
-//			TODO 存储任务样本（除了完成时间）
+
 			List<NodeStatus> nodeStatusList = new ArrayList<>();
+			Map<String, NodeStatus> nodeStatusMap = new HashMap<>();
 			aliveService.getAliveList().forEach(deviceName -> {
 				val nodeInfo = allNodeInfos.get(deviceName);
 				if (nodeInfo != null) {
-					nodeStatusList.add(new NodeStatus());
+					NodeStatus nodeStatus = new NodeStatus(nodeInfo.getCpuUsage(), nodeInfo.getMemoryUsage(), nodeInfo.getPowerRemain(), nodeInfo.getStorageRemain(), nodeInfo.getLatency());
+					nodeStatusList.add(nodeStatus);
+					nodeStatusMap.put(deviceName, nodeStatus);
 				}
 			});
+			
+			// Reuse the existing NodeStatus object from the list
+			NodeStatus choseNode = nodeStatusMap.get(taskInfo.getToClient());
+			if (choseNode == null) {
+				// If chosen node is not in candidate list, create and add it
+				NodeInfo choseNodeInfo = allNodeInfos.get(taskInfo.getToClient());
+				if (choseNodeInfo != null) {
+					choseNode = new NodeStatus(choseNodeInfo.getCpuUsage(), choseNodeInfo.getMemoryUsage(), choseNodeInfo.getPowerRemain(), choseNodeInfo.getStorageRemain(), choseNodeInfo.getLatency());
+					nodeStatusList.add(choseNode);
+				}
+			}
+			TaskSample task = new TaskSample(taskInfo.getTaskId(),nodeStatusList,choseNode, 0);
 
+			taskSampleRepository.save(task);
 		}
 
 	}

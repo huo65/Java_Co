@@ -57,13 +57,13 @@ public class PublishAllTask {
 	/**
 	 * 参数定时更新
 	 */
-	@Scheduled(fixedDelay = 50000)
-	public void updateParameter() {
-		System.out.println("PublishAllTask update");
-		double[] param = optimizationService.updateParam();
-		String message = createParamMessage(param);
-		mqttServer.publishAll("/optimization/param", message.getBytes(StandardCharsets.UTF_8));
-	}
+//	@Scheduled(fixedDelay = 50000)
+//	public void updateParameter() {
+//		System.out.println("PublishAllTask update");
+//		double[] param = optimizationService.updateParam();
+//		String message = createParamMessage(param);
+//		mqttServer.publishAll("/optimization/param", message.getBytes(StandardCharsets.UTF_8));
+//	}
 
 	public String createAliveMessage(Set<String> aliveList) {
 		List<String> sortedList = new ArrayList<>(aliveList); // Set -> List

@@ -27,9 +27,9 @@ public class TaskModelEvaluator {
 			TaskSample ts = samples.get(i);
 			y[i] = ts.getDuration();
 			x[i][0] = ts.getChoseNode().cpuUtil;
-			x[i][1] = ts.getChoseNode().memFree;
+			x[i][1] = ts.getChoseNode().memUse;
 			x[i][2] = ts.getChoseNode().powerRemain;
-			x[i][3] = ts.getChoseNode().storageRatio;
+			x[i][3] = ts.getChoseNode().storageRemain;
 		}
 
 		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
@@ -64,9 +64,9 @@ public class TaskModelEvaluator {
 			for (NodeStatus node : task.getNodes()) {
 				// 计算负载评分 S_i^load
 				double load = omega[0] * node.cpuUtil
-					+ omega[1] * node.memFree
+					+ omega[1] * node.memUse
 					+ omega[2] * node.powerRemain
-					+ omega[3] * node.storageRatio;
+					+ omega[3] * node.storageRemain;
 
 				if (load < minLoad) {
 					minLoad = load;
@@ -79,9 +79,9 @@ public class TaskModelEvaluator {
 			if (bestNode != null) {
 				predictedDuration = predict(
 					bestNode.cpuUtil,
-					bestNode.memFree,
+					bestNode.memUse,
 					bestNode.powerRemain,
-					bestNode.storageRatio
+					bestNode.storageRemain
 				);
 			}
 

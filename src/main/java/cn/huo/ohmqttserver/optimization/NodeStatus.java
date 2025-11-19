@@ -18,9 +18,9 @@ public class NodeStatus {
 	private Long id;
 
 	public double cpuUtil;
-	public double memFree;
+	public double memUse;
 	public double powerRemain;
-	public double storageRatio;
+	public double storageRemain;
 
 	@ManyToOne
 	@JoinColumn(name = "task_sample_id")
@@ -32,9 +32,9 @@ public class NodeStatus {
 	}
 	public NodeStatus(double cpuUtil, double memFree, double powerRemain, double storageRatio) {
 		this.cpuUtil = cpuUtil;
-		this.memFree = memFree;
+		this.memUse = memFree;
 		this.powerRemain = powerRemain;
-		this.storageRatio = storageRatio;
+		this.storageRemain = storageRatio;
 	}
 
 	// Getter/Setter 略

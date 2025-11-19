@@ -1,5 +1,7 @@
 package cn.huo.ohmqttserver.optimization;
 
+import cn.huo.ohmqttserver.optimization.dao.NodeStatus;
+import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 import java.util.List;

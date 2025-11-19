@@ -17,7 +17,8 @@ public class TaskInfo {
     private String taskId;
     private String fromClient;
     private String toClient;
-    private String timestamp;
+    private String StartTimestamp;
+    private String EndTimestamp;
 //    private TaskParams params;
 
     public static TaskInfo parseTaskInfo(String taskMessage){
@@ -26,7 +27,18 @@ public class TaskInfo {
         taskInfo.setTaskId(taskInfoJSON.getString("taskId"));
         taskInfo.setFromClient(taskInfoJSON.getString("fromClient"));
         taskInfo.setToClient(taskInfoJSON.getString("toClient"));
-        taskInfo.setTimestamp(taskInfoJSON.getString("timestamp"));
+        taskInfo.setStartTimestamp(taskInfoJSON.getString("timestamp"));
+
+        return taskInfo;
+    }
+
+    public static TaskInfo parseResultInfo(String resultMessage) {
+        JSONObject taskInfoJSON = new JSONObject(resultMessage);
+        TaskInfo taskInfo = new TaskInfo();
+        taskInfo.setTaskId(taskInfoJSON.getString("taskId"));
+        taskInfo.setFromClient(taskInfoJSON.getString("fromClient"));
+        taskInfo.setToClient(taskInfoJSON.getString("toClient"));
+        taskInfo.setEndTimestamp(taskInfoJSON.getString("timestamp"));
 
         return taskInfo;
     }

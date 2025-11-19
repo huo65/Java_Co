@@ -1,8 +1,8 @@
 package cn.huo.ohmqttserver;
 
 import cn.huo.ohmqttserver.optimization.OmegaOptimizer;
-import cn.huo.ohmqttserver.optimization.TaskSample;
-import cn.huo.ohmqttserver.optimization.NodeStatus;
+import cn.huo.ohmqttserver.optimization.dao.TaskSample;
+import cn.huo.ohmqttserver.optimization.dao.NodeStatus;
 import cn.huo.ohmqttserver.service.TaskSampleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

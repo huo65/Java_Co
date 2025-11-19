@@ -1,8 +1,7 @@
 package cn.huo.ohmqttserver.service;
 
-import cn.huo.ohmqttserver.optimization.NodeStatus;
 import cn.huo.ohmqttserver.optimization.OmegaOptimizer;
-import cn.huo.ohmqttserver.optimization.TaskSample;
+import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;

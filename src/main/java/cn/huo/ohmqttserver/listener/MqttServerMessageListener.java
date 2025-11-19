@@ -1,10 +1,11 @@
 package cn.huo.ohmqttserver.listener;
 
-import cn.huo.ohmqttserver.optimization.NodeInfo;
-import cn.huo.ohmqttserver.optimization.NodeStatus;
+import cn.huo.ohmqttserver.optimization.TaskTrace;
+import cn.huo.ohmqttserver.optimization.dao.NodeStatus;
 import cn.huo.ohmqttserver.optimization.TaskInfo;
-import cn.huo.ohmqttserver.optimization.TaskSample;
+import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import cn.huo.ohmqttserver.service.AliveService;
+import cn.huo.ohmqttserver.service.NodeStatusRepository;
 import cn.huo.ohmqttserver.service.TaskSampleRepository;
 import lombok.val;
 import org.dromara.mica.mqtt.codec.MqttPublishMessage;
@@ -40,6 +41,8 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	private AliveService aliveService;
 	@Autowired
 	private TaskSampleRepository taskSampleRepository;
+    @Autowired
+    private NodeStatusRepository nodeStatusRepository;
 
 	@Override
 	public void onMessage(ChannelContext context, String clientId, String topic, MqttQoS qos, MqttPublishMessage message) {
@@ -66,17 +69,28 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 			
 			// Reuse the existing NodeStatus object from the list
 			NodeStatus choseNode = nodeStatusMap.get(taskInfo.getToClient());
-			if (choseNode == null) {
-				// If chosen node is not in candidate list, create and add it
-				NodeInfo choseNodeInfo = allNodeInfos.get(taskInfo.getToClient());
-				if (choseNodeInfo != null) {
-					choseNode = new NodeStatus(choseNodeInfo.getCpuUsage(), choseNodeInfo.getMemoryUsage(), choseNodeInfo.getPowerRemain(), choseNodeInfo.getStorageRemain(), choseNodeInfo.getLatency());
-					nodeStatusList.add(choseNode);
+			try {
+				if (choseNode == null) {
+					throw new Exception("device 不可用: " + taskInfo.getToClient());
 				}
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 			TaskSample task = new TaskSample(taskInfo.getTaskId(),nodeStatusList,choseNode, 0);
 
-			taskSampleRepository.save(task);
+//			taskSampleRepository.save(task);
+			TaskTrace.taskWithoutResult.put(task.getTaskId(), task);
+			TaskTrace.taskStartTime.put(task.getTaskId(), taskInfo.getStartTimestamp());
+		}
+		if ("/task/result".equals(topic)){
+			String resultMessage = new String(message.payload());
+			TaskInfo taskInfo = TaskInfo.parseResultInfo(resultMessage);
+			TaskSample task = TaskTrace.taskWithoutResult.get(taskInfo.getTaskId());
+			String startTime = TaskTrace.taskStartTime.get(taskInfo.getTaskId());
+//			Double duration = taskInfo.getEndTimestamp() - startTime;
+
+//			task.setDuration();
+
 		}
 
 	}

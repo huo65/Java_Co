@@ -1,4 +1,4 @@
-package cn.huo.ohmqttserver.optimization;
+package cn.huo.ohmqttserver.optimization.dao;
 
 import jakarta.persistence.*;
 import lombok.*;

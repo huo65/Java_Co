@@ -1,6 +1,7 @@
 package cn.huo.ohmqttserver.optimization;
 
 
+import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import org.moeaframework.algorithm.NSGAII;
 import org.moeaframework.core.*;
 import org.moeaframework.core.operator.CompoundVariation;

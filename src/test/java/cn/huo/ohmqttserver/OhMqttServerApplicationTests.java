@@ -23,7 +23,7 @@ class OhMqttServerApplicationTests {
 		NodeStatus node3 = new NodeStatus(0.6, 0.8, 0.6, 0.3,0.3);
 
 		List<NodeStatus> nodeList = Arrays.asList(node1, node2, node3);
-		TaskSample task = new TaskSample(nodeList, node1, 12.0);
+		TaskSample task = new TaskSample("testTask1",nodeList, node1, 12.0);
 
 		taskSampleRepository.save(task);
 	}

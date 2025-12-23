@@ -1,5 +1,6 @@
 package cn.huo.ohmqttserver.task;
 
+import cn.huo.ohmqttserver.optimization.NodeInfo;
 import cn.huo.ohmqttserver.service.AliveService;
 import cn.huo.ohmqttserver.service.OptimizationService;
 import org.dromara.mica.mqtt.core.server.MqttServer;
@@ -13,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+
 
 /**
  * @author wsq
@@ -87,6 +90,14 @@ public class PublishAllTask {
 		jsonObject.put("param", jsonArray);
 
 		return jsonObject.toString();
+	}
+
+	/**
+	 * nodeInfoMap每天定时清理，防止僵尸节点堆积
+	 */
+	@Scheduled(fixedDelay = 86400000)
+	public void clearNodeInfoMap() {
+		NodeInfo.clear();
 	}
 
 }

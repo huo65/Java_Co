@@ -59,6 +59,11 @@ public class NodeInfo {
         return nodeInfoMap.get(deviceName);
     }
 
+    // 清理所有节点信息
+    public static void clear() {
+        nodeInfoMap.clear();
+    }
+
     // 获取所有节点信息
     public static Map<String, NodeInfo> getAllNodeInfos() {
         return new HashMap<>(nodeInfoMap);

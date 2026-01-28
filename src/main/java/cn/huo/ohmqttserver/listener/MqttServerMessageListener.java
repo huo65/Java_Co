@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tio.core.ChannelContext;
 import org.springframework.context.ApplicationContext;
+
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,8 +68,7 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 					nodeStatusMap.put(deviceName, nodeStatus);
 				}
 			});
-			
-			// Reuse the existing NodeStatus object from the list
+
 			NodeStatus choseNode = nodeStatusMap.get(taskInfo.getToClient());
 			try {
 				if (choseNode == null) {
@@ -76,9 +77,8 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			TaskSample task = new TaskSample(taskInfo.getTaskId(),nodeStatusList,choseNode, 0);
+			TaskSample task = new TaskSample(taskInfo.getTaskId(),nodeStatusList,choseNode, 0.0);
 
-//			taskSampleRepository.save(task);
 			TaskTrace.taskWithoutResult.put(task.getTaskId(), task);
 			TaskTrace.taskStartTime.put(task.getTaskId(), taskInfo.getStartTimestamp());
 		}
@@ -86,10 +86,12 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 			String resultMessage = new String(message.payload());
 			TaskInfo taskInfo = TaskInfo.parseResultInfo(resultMessage);
 			TaskSample task = TaskTrace.taskWithoutResult.get(taskInfo.getTaskId());
-			String startTime = TaskTrace.taskStartTime.get(taskInfo.getTaskId());
-//			Double duration = taskInfo.getEndTimestamp() - startTime;
-
-//			task.setDuration();
+			BigInteger startTime = TaskTrace.taskStartTime.get(taskInfo.getTaskId());
+			BigInteger duration = taskInfo.getEndTimestamp().subtract(startTime);
+			task.setDuration(duration.doubleValue());
+			taskSampleRepository.save(task);
+			TaskTrace.taskStartTime.remove(taskInfo.getTaskId());
+			TaskTrace.taskWithoutResult.remove(taskInfo.getTaskId());
 
 		}
 

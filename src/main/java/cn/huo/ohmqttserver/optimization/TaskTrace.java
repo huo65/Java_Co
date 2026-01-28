@@ -2,9 +2,8 @@ package cn.huo.ohmqttserver.optimization;
 
 import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 
-import java.util.ArrayList;
+import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,7 +16,7 @@ import java.util.Map;
 public class TaskTrace {
 
     public static final Map<String,TaskSample> taskWithoutResult = new HashMap<>();
-    public static final Map<String,String> taskStartTime = new HashMap<>();
+    public static final Map<String, BigInteger> taskStartTime = new HashMap<>();
 
-//    TODO 后续拓展任务追踪
+
 }

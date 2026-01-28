@@ -9,13 +9,14 @@ import java.util.List;
 
 /**
  * 1. @ClassName OptimizationService
- * 2. @Description TODO
+ * 2. @Description 封装参数优化调用
  * 3. @Author huo
  * 4. @Date 2025/5/21 上午11:44
  */
 @Service
 public class OptimizationService {
 
+//    TODO　存储完成后替换真实记录优化
     public double[] updateParam(){
         List<TaskSample> samples = Arrays.asList(
 //                new TaskSample(

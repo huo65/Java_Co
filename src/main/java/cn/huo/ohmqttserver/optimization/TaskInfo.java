@@ -4,6 +4,8 @@ import lombok.Data;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
+
 /**
  * 1. @ClassName TaskInfo
  * 2. @Description 任务信息解析
@@ -13,13 +15,11 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class TaskInfo {
-//    {"taskId":"1747991732356","fromClient":"OpenHarmony 3.2","toClient":"Lenovo TB-J607F","timestamp":"now","params":{"bitmap":}}
     private String taskId;
     private String fromClient;
     private String toClient;
-    private String StartTimestamp;
-    private String EndTimestamp;
-//    private TaskParams params;
+    private BigInteger StartTimestamp;
+    private BigInteger EndTimestamp;
 
     public static TaskInfo parseTaskInfo(String taskMessage){
         JSONObject taskInfoJSON = new JSONObject(taskMessage);
@@ -27,7 +27,7 @@ public class TaskInfo {
         taskInfo.setTaskId(taskInfoJSON.getString("taskId"));
         taskInfo.setFromClient(taskInfoJSON.getString("fromClient"));
         taskInfo.setToClient(taskInfoJSON.getString("toClient"));
-        taskInfo.setStartTimestamp(taskInfoJSON.getString("timestamp"));
+        taskInfo.setStartTimestamp(taskInfoJSON.getBigInteger("timestamp"));
 
         return taskInfo;
     }
@@ -38,7 +38,7 @@ public class TaskInfo {
         taskInfo.setTaskId(taskInfoJSON.getString("taskId"));
         taskInfo.setFromClient(taskInfoJSON.getString("fromClient"));
         taskInfo.setToClient(taskInfoJSON.getString("toClient"));
-        taskInfo.setEndTimestamp(taskInfoJSON.getString("timestamp"));
+        taskInfo.setEndTimestamp(taskInfoJSON.getBigInteger("timestamp"));
 
         return taskInfo;
     }

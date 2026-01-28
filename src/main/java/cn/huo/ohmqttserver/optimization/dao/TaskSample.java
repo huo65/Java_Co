@@ -30,9 +30,9 @@ public class TaskSample {
 	@OneToOne
 	private NodeStatus choseNode;
 
-	private double duration;
+	private Double duration;
 
-	public TaskSample(String taskId,List<NodeStatus> nodes, NodeStatus choseNode, double duration) {
+	public TaskSample(String taskId,List<NodeStatus> nodes, NodeStatus choseNode, Double duration) {
 		this.taskId = taskId;
 		this.nodes = nodes;
 		this.choseNode = choseNode;

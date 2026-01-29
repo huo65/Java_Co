@@ -11,6 +11,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false, exclude = {"taskSample"})
 public class NodeStatus {
 
 	@Id

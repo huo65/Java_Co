@@ -14,6 +14,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false, exclude = {"nodes"})
 public class TaskSample {
 
 	@Id

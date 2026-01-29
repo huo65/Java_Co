@@ -1,7 +1,10 @@
 package cn.huo.ohmqttserver.service;
 
+import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 1. @ClassName TaskSampleService
@@ -14,8 +17,8 @@ public class TaskSampleService {
     @Autowired
     private TaskSampleRepository taskSampleRepository;
 
-    void saveNewTask(){
-
+    List<TaskSample> getNewTaskSamples(){
+        return taskSampleRepository.findAll();
     }
 
 }

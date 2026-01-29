@@ -1,8 +1,8 @@
 package cn.huo.ohmqttserver.listener;
 
-import cn.huo.ohmqttserver.optimization.TaskTrace;
+import cn.huo.ohmqttserver.optimization.entity.TaskTrace;
 import cn.huo.ohmqttserver.optimization.dao.NodeStatus;
-import cn.huo.ohmqttserver.optimization.TaskInfo;
+import cn.huo.ohmqttserver.optimization.entity.TaskInfo;
 import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import cn.huo.ohmqttserver.service.AliveService;
 import cn.huo.ohmqttserver.service.NodeStatusRepository;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cn.huo.ohmqttserver.optimization.NodeInfo.*;
+import static cn.huo.ohmqttserver.optimization.entity.NodeInfo.*;
 
 /**
  * 消息监听

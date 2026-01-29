@@ -7,6 +7,7 @@ import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 import java.util.List;
 
 /**
+ * 任务模型评估器，提供评估需要的方法
  * @author huozj
  */
 public class TaskModelEvaluator {
@@ -48,14 +49,6 @@ public class TaskModelEvaluator {
 	}
 
 
-//	    // 预测执行时间
-//    public double evaluateDurationWithOmega(double[] omega) {
-//        return samples.stream()
-//            .mapToDouble(sample -> {
-//                double load = sample.computeLoad(omega);
-//                return Math.abs(sample.duration - load); // 简化目标函数
-//            }).average().orElse(Double.MAX_VALUE);
-//    }
 	public double evaluateDurationWithOmega(double[] omega) {
 		double totalDuration = 0.0;
 

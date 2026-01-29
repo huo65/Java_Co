@@ -1,4 +1,4 @@
-package cn.huo.ohmqttserver.optimization;
+package cn.huo.ohmqttserver.optimization.entity;
 
 import lombok.Data;
 import org.json.JSONObject;

@@ -6,6 +6,7 @@ import org.moeaframework.core.variable.RealVariable;
 import org.moeaframework.problem.AbstractProblem;
 
 /**
+ * 构造参数优化问题
  * @author huozj
  */
 public class OmegaOptimizationProblem extends AbstractProblem {

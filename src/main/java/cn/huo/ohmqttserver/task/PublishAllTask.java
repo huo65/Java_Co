@@ -1,6 +1,6 @@
 package cn.huo.ohmqttserver.task;
 
-import cn.huo.ohmqttserver.optimization.NodeInfo;
+import cn.huo.ohmqttserver.optimization.entity.NodeInfo;
 import cn.huo.ohmqttserver.service.AliveService;
 import cn.huo.ohmqttserver.service.OptimizationService;
 import org.dromara.mica.mqtt.core.server.MqttServer;

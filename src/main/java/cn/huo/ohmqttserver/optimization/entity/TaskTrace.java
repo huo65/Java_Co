@@ -1,4 +1,4 @@
-package cn.huo.ohmqttserver.optimization;
+package cn.huo.ohmqttserver.optimization.entity;
 
 import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 
@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * 1. @ClassName TaskTrace
- * 2. @Description Task监控
+ * 2. @Description Task执行追踪，用于任务样本存储
  * 3. @Author huo
  * 4. @Date 2025/11/19 下午8:37
  */

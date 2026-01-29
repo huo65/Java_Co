@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * 参数优化器对外提供optimize方法
  * @author huozj
  */
 public class OmegaOptimizer {

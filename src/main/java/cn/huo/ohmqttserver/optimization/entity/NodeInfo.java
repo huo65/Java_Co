@@ -1,4 +1,4 @@
-package cn.huo.ohmqttserver.optimization;
+package cn.huo.ohmqttserver.optimization.entity;
 
 import lombok.Data;
 import org.json.JSONObject;
@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 维护各个设备信息
+ */
 @Data
 @Component
 public class NodeInfo {

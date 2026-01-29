@@ -3,6 +3,7 @@ package cn.huo.ohmqttserver.task;
 import cn.huo.ohmqttserver.optimization.entity.NodeInfo;
 import cn.huo.ohmqttserver.service.AliveService;
 import cn.huo.ohmqttserver.service.OptimizationService;
+import cn.huo.ohmqttserver.service.TaskSampleService;
 import org.dromara.mica.mqtt.core.server.MqttServer;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +29,8 @@ public class PublishAllTask {
 	private AliveService aliveService;
 	@Autowired
 	private OptimizationService optimizationService;
+	@Autowired
+	TaskSampleService taskSampleService;
 
 	/**
 	 * 测试连接
@@ -60,13 +63,16 @@ public class PublishAllTask {
 	/**
 	 * 参数定时更新
 	 */
-//	@Scheduled(fixedDelay = 50000)
-//	public void updateParameter() {
-//		System.out.println("PublishAllTask update");
-//		double[] param = optimizationService.updateParam();
-//		String message = createParamMessage(param);
-//		mqttServer.publishAll("/optimization/param", message.getBytes(StandardCharsets.UTF_8));
-//	}
+	@Scheduled(fixedDelay = 5000000)
+	public void updateParameter() {
+		System.out.println("PublishAllTask update");
+		double[] param = optimizationService.updateParam();
+		//训练数据不足
+		if (param == null)
+			return;
+		String message = createParamMessage(param);
+		mqttServer.publishAll("/optimization/param", message.getBytes(StandardCharsets.UTF_8));
+	}
 
 	public String createAliveMessage(Set<String> aliveList) {
 		List<String> sortedList = new ArrayList<>(aliveList); // Set -> List

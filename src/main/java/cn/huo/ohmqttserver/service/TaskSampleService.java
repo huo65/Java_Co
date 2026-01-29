@@ -2,6 +2,8 @@ package cn.huo.ohmqttserver.service;
 
 import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +20,12 @@ public class TaskSampleService {
     private TaskSampleRepository taskSampleRepository;
 
     List<TaskSample> getNewTaskSamples(){
-        return taskSampleRepository.findAll();
+        Pageable limit = PageRequest.of(0, 500);
+        return taskSampleRepository.findAll(limit).getContent();
     }
+    void clearTaskSample(){
+        taskSampleRepository.deleteAll();
+    }
+
 
 }

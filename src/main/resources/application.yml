@@ -14,7 +14,7 @@ spring:
           dialect: org.hibernate.dialect.MySQL8Dialect
 
 
-# mqtt 服务端配置
+# monitor 服务端配置
 mqtt:
   server:
     enabled: true               # 是否开启服务端，默认：true
@@ -25,19 +25,19 @@ mqtt:
     read-buffer-size: 8KB       # 接收数据的 buffer size，默认：8k
     max-bytes-in-message: 10MB  # 消息解析最大 bytes 长度，默认：10M
     auth:
-      enable: false             # 是否开启 mqtt 认证
-      username: mica            # mqtt 认证用户名
-      password: mica            # mqtt 认证密码
+      enable: false             # 是否开启 monitor 认证
+      username: mica            # monitor 认证用户名
+      password: mica            # monitor 认证密码
     debug: true                 # 如果开启 prometheus 指标收集建议关闭
     stat-enable: false           # 开启指标收集，debug 和 prometheus 开启时需要打开，默认开启，关闭节省内存
     web-port: 8083              # http、websocket 端口，默认：8083
     websocket-enable: true      # 是否开启 websocket，默认： true
-    http-enable: false          # 是否开启 http api，默认： false
+    http-enable: true          # 是否开启 http api，默认： false
     http-basic-auth:
       enable: false             # 是否开启 http basic auth，默认： false
       username: mica            # http basic auth 用户名
       password: mica            # http basic auth 密码
-    ssl:                        # mqtt tcp ssl 认证
+    ssl:                        # monitor tcp ssl 认证
       enabled: false            # 是否开启 ssl 认证，2.1.0 开始支持双向认证
       keystore-path:            # 必须参数：ssl keystore 目录，支持 classpath:/ 路径。
       keystore-pass:            # 必选参数：ssl keystore 密码
@@ -50,4 +50,4 @@ logging:
     root: info
     server: info # t-io 服务端默认日志
     org.tio: info # t-io 服务端默认日志
-    org.dromara.mica.mqtt: info # mica-mqtt 日志
+    org.dromara.mica.mqtt: info # mica-monitor 日志

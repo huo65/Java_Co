@@ -14,7 +14,7 @@ public class MqttUniqueIdService implements IMqttServerUniqueIdService {
 
 	@Override
 	public String getUniqueId(ChannelContext context, String clientId, String userName, String password) {
-		// 返回的 uniqueId 会替代 mqtt client 传过来的 clientId，请保证返回的 uniqueId 唯一。
+		// 返回的 uniqueId 会替代 monitor client 传过来的 clientId，请保证返回的 uniqueId 唯一。
 		return clientId;
 	}
 

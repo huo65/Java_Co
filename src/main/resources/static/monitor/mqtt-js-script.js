@@ -1,6 +1,6 @@
 class MqttJsMonitor {
     constructor() {
-        this.apiUrl = '/proxy/monitor';
+        this.apiUrl = '/proxy/mqtt';
         this.username = 'mica';
         this.password = 'mica';
         this.clients = [];

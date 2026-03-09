@@ -9,6 +9,7 @@ class MqttJsMonitor {
         // 配置常量
         this.config = {
             apiUrl: '/proxy/mqtt',
+            monitorApiUrl: '/monitor',
             username: 'mica',
             password: 'mica',
             autoRefreshInterval: 30000,
@@ -23,6 +24,8 @@ class MqttJsMonitor {
             clients: [],
             filteredClients: [],
             previousClients: new Map(),
+            nodeInfos: {},
+            aliveDevices: new Set(),
             mqttClient: null,
             mqttMessageCount: 0,
             connectionLogCount: 0,
@@ -31,7 +34,7 @@ class MqttJsMonitor {
         };
         
         // 生成客户端ID
-        this.clientId = `web-monitor-${Date.now()}`;
+        this.clientId = `monitor-${Date.now()}`;
         
         // DOM 元素缓存
         this.elements = {};
@@ -333,7 +336,7 @@ class MqttJsMonitor {
         this.updateButtonState(true);
         
         // 自动订阅默认主题
-        this.subscribeToTopic('sys/clients/+/status');
+        this.subscribeToTopic('/device/status');
         
         this.showNotification('监控连接成功', 'success');
     }
@@ -602,34 +605,39 @@ class MqttJsMonitor {
     // ==================== 设备列表管理 ====================
 
     /**
-     * 加载设备列表
+     * 加载设备列表 - 使用新的 MonitorController 接口
      */
     async loadClients() {
         try {
             this.showLoading(true);
             
-            const response = await fetch(
-                `${this.config.apiUrl}/clients?_page=1&_limit=10000`,
-                {
+            // 并行获取节点信息和在线设备列表
+            const [nodeInfoResponse, aliveResponse] = await Promise.all([
+                fetch(`${this.config.monitorApiUrl}/nodeInfo`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': 'Basic ' + btoa(this.config.username + ':' + this.config.password),
                         'Accept': 'application/json'
                     }
-                }
-            );
+                }),
+                fetch(`${this.config.monitorApiUrl}/alive`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+            ]);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (!nodeInfoResponse.ok) {
+                throw new Error(`NodeInfo HTTP ${nodeInfoResponse.status}: ${nodeInfoResponse.statusText}`);
+            }
+            if (!aliveResponse.ok) {
+                throw new Error(`Alive HTTP ${aliveResponse.status}: ${aliveResponse.statusText}`);
             }
 
-            const data = await response.json();
+            const nodeInfoData = await nodeInfoResponse.json();
+            const aliveData = await aliveResponse.json();
             
-            if (data.code === 1) {
-                this.processClientsData(data);
-            } else {
-                throw new Error(`API错误: ${data.code}`);
-            }
+            this.processMonitorData(nodeInfoData, aliveData);
         } catch (error) {
             this.logConnection(`获取设备失败: ${error.message}`, 'error');
             this.showError(`获取设备列表失败: ${error.message}`);
@@ -639,32 +647,56 @@ class MqttJsMonitor {
     }
 
     /**
-     * 处理设备数据
+     * 处理监控数据 - 整合 NodeInfo 和 Alive 数据
      */
-    processClientsData(data) {
-        let clients = [];
-        if (data.data?.list) {
-            clients = data.data.list;
-        } else if (Array.isArray(data.data)) {
-            clients = data.data;
-        }
+    processMonitorData(nodeInfoData, aliveData) {
+        // 存储节点信息
+        this.state.nodeInfos = nodeInfoData || {};
         
-        const normalizedClients = clients.map(client => ({
-            clientId: client.clientId || 'unknown',
-            username: client.username || 'N/A',
-            connected: Boolean(client.connected),
-            ipAddress: client.ipAddress || 'N/A',
-            port: client.port || 'N/A',
-            connectedAt: client.connectedAt || client.createdAt || Date.now(),
-            protoName: client.protoName || 'N/A',
-            protoVer: client.protoVer || 'N/A'
-        }));
+        // 存储在线设备列表
+        this.state.aliveDevices = new Set(aliveData || []);
         
-        this.detectStatusChanges(normalizedClients);
-        this.state.clients = normalizedClients;
+        // 将节点信息转换为客户端列表格式
+        const clients = this.convertNodeInfoToClients(this.state.nodeInfos, this.state.aliveDevices);
+        
+        this.detectStatusChanges(clients);
+        this.state.clients = clients;
         this.filterClients();
         this.updateStats();
         this.updateLastUpdateTime();
+    }
+
+    /**
+     * 将 NodeInfo 数据转换为客户端格式
+     */
+    convertNodeInfoToClients(nodeInfos, aliveDevices) {
+        const clients = [];
+        
+        Object.entries(nodeInfos).forEach(([deviceName, nodeInfo]) => {
+            const isOnline = aliveDevices.has(deviceName);
+            
+            clients.push({
+                clientId: deviceName,
+                deviceName: deviceName,
+                connected: isOnline,
+                // NodeInfo 详细指标
+                cpuUsage: nodeInfo.cpuUsage || 0,
+                memoryUsage: nodeInfo.memoryUsage || 0,
+                powerRemain: nodeInfo.powerRemain || 0,
+                storageRemain: nodeInfo.storageRemain || 0,
+                latency: nodeInfo.latency || 0,
+                // 保留原有字段以兼容
+                username: 'N/A',
+                ipAddress: 'N/A',
+                port: 'N/A',
+                connectedAt: Date.now(),
+                protoName: 'MQTT',
+                protoVer: '3.1.1'
+            });
+        });
+        
+        // 如果没有任何节点信息，显示空列表
+        return clients;
     }
 
     /**
@@ -743,17 +775,38 @@ class MqttJsMonitor {
     }
 
     /**
-     * 创建设备卡片元素
+     * 创建设备卡片元素 - 显示详细的节点信息
      */
     createClientCardElement(client) {
         const statusClass = client.connected ? 'status-online' : 'status-offline';
         const statusText = client.connected ? '在线' : '离线';
-        const connectedAt = new Date(client.connectedAt).toLocaleString('zh-CN');
+        const cardClass = client.connected ? 'device-card online' : 'device-card offline';
+        
+        // 格式化数值显示
+        const formatPercent = (val) => `${(val || 0).toFixed(1)}%`;
+        const formatStorage = (val) => {
+            if (val >= 1024) {
+                return `${(val / 1024).toFixed(2)} GB`;
+            }
+            return `${val.toFixed(2)} MB`;
+        };
+        const formatLatency = (val) => `${(val || 0).toFixed(0)} ms`;
+        
+        // 根据使用率确定颜色等级
+        const getUsageLevel = (val) => {
+            if (val >= 80) return 'critical';
+            if (val >= 60) return 'warning';
+            return 'normal';
+        };
+        
+        const cpuLevel = getUsageLevel(client.cpuUsage);
+        const memLevel = getUsageLevel(client.memoryUsage);
+        const batteryLevel = client.powerRemain <= 20 ? 'critical' : client.powerRemain <= 50 ? 'warning' : 'normal';
         
         const card = document.createElement('article');
-        card.className = 'device-card';
+        card.className = cardClass;
         card.setAttribute('role', 'article');
-        card.setAttribute('aria-label', `设备 ${client.clientId}`);
+        card.setAttribute('aria-label', `设备 ${client.clientId}, 状态: ${statusText}`);
         card.setAttribute('tabindex', '0');
         
         card.innerHTML = `
@@ -761,21 +814,90 @@ class MqttJsMonitor {
                 <span class="device-id">${this.escapeHtml(client.clientId)}</span>
                 <div class="device-status" aria-label="状态: ${statusText}">
                     <span class="status-dot ${statusClass}" aria-hidden="true"></span>
-                    <span>${statusText}</span>
+                    <span class="status-text">${statusText}</span>
                 </div>
             </header>
             <div class="device-info">
-                <div class="info-row">
-                    <span class="info-label">IP地址</span>
-                    <span class="info-value">${this.escapeHtml(client.ipAddress)}:${client.port}</span>
+                <!-- CPU使用率 -->
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+                            <rect x="9" y="9" width="6" height="6"/>
+                            <line x1="9" y1="1" x2="9" y2="4"/>
+                            <line x1="15" y1="1" x2="15" y2="4"/>
+                            <line x1="9" y1="20" x2="9" y2="23"/>
+                            <line x1="15" y1="20" x2="15" y2="23"/>
+                            <line x1="20" y1="9" x2="23" y2="9"/>
+                            <line x1="20" y1="14" x2="23" y2="14"/>
+                            <line x1="1" y1="9" x2="4" y2="9"/>
+                            <line x1="1" y1="14" x2="4" y2="14"/>
+                        </svg>
+                        CPU
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-progress ${cpuLevel}" style="width: ${Math.min(client.cpuUsage || 0, 100)}%"></div>
+                    </div>
+                    <span class="metric-value ${cpuLevel}">${formatPercent(client.cpuUsage)}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">协议版本</span>
-                    <span class="info-value">${client.protoName} ${client.protoVer}</span>
+                
+                <!-- 内存使用率 -->
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+                            <line x1="2" y1="10" x2="22" y2="10"/>
+                            <line x1="6" y1="6" x2="6.01" y2="6"/>
+                            <line x1="10" y1="6" x2="10.01" y2="6"/>
+                            <line x1="14" y1="6" x2="14.01" y2="6"/>
+                            <line x1="18" y1="6" x2="18.01" y2="6"/>
+                        </svg>
+                        内存
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-progress ${memLevel}" style="width: ${Math.min(client.memoryUsage || 0, 100)}%"></div>
+                    </div>
+                    <span class="metric-value ${memLevel}">${formatPercent(client.memoryUsage)}</span>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">连接时间</span>
-                    <time class="info-value" datetime="${new Date(client.connectedAt).toISOString()}">${connectedAt}</time>
+                
+                <!-- 电池电量 -->
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <rect x="2" y="7" width="16" height="10" rx="2" ry="2"/>
+                            <line x1="22" y1="11" x2="22" y2="13"/>
+                            <line x1="6" y1="11" x2="6" y2="13"/>
+                        </svg>
+                        电量
+                    </div>
+                    <div class="metric-bar">
+                        <div class="metric-progress battery ${batteryLevel}" style="width: ${Math.min(client.powerRemain || 0, 100)}%"></div>
+                    </div>
+                    <span class="metric-value ${batteryLevel}">${formatPercent(client.powerRemain)}</span>
+                </div>
+                
+                <!-- 存储空间 -->
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        存储
+                    </div>
+                    <span class="metric-value storage">${formatStorage(client.storageRemain || 0)}</span>
+                </div>
+                
+                <!-- 网络延迟 -->
+                <div class="metric-row">
+                    <div class="metric-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                        延迟
+                    </div>
+                    <span class="metric-value latency ${client.latency > 200 ? 'warning' : client.latency > 500 ? 'critical' : 'normal'}">${formatLatency(client.latency)}</span>
                 </div>
             </div>
         `;

@@ -532,6 +532,134 @@ header h1 {
 }
 
 /* ============================================
+   设备指标样式 - 用于显示CPU、内存、电池等
+   ============================================ */
+.metric-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px dashed var(--border-color);
+    font-size: var(--text-sm);
+}
+
+.metric-row:last-child {
+    border-bottom: none;
+}
+
+.metric-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 60px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.metric-label svg {
+    color: var(--color-gray-400);
+}
+
+.metric-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 60px;
+}
+
+.metric-progress {
+    height: 100%;
+    background: var(--color-success);
+    border-radius: 3px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.metric-progress.warning {
+    background: var(--color-warning);
+}
+
+.metric-progress.critical {
+    background: var(--color-error);
+}
+
+.metric-progress.battery {
+    background: var(--color-success);
+}
+
+.metric-progress.battery.warning {
+    background: var(--color-warning);
+}
+
+.metric-progress.battery.critical {
+    background: var(--color-error);
+}
+
+.metric-value {
+    min-width: 50px;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.metric-value.normal {
+    color: var(--color-success);
+}
+
+.metric-value.warning {
+    color: var(--color-warning);
+}
+
+.metric-value.critical {
+    color: var(--color-error);
+}
+
+.metric-value.storage {
+    color: var(--color-primary);
+}
+
+.metric-value.latency {
+    color: var(--text-secondary);
+}
+
+.metric-value.latency.warning {
+    color: var(--color-warning);
+}
+
+.metric-value.latency.critical {
+    color: var(--color-error);
+}
+
+/* 在线/离线设备卡片样式 */
+.device-card.online .device-header {
+    background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.device-card.offline .device-header {
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+}
+
+.device-card.offline {
+    opacity: 0.85;
+}
+
+.device-card.offline .metric-bar {
+    opacity: 0.5;
+}
+
+.device-card.offline .metric-value {
+    color: var(--text-tertiary);
+}
+
+.status-text {
+    font-weight: 600;
+}
+
+/* ============================================
    监控控制中心 - 重构版
    ============================================ */
 .monitoring-control-center {

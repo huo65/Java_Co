@@ -337,7 +337,10 @@ class MqttJsMonitor {
         
         // 自动订阅默认主题
         this.subscribeToTopic('/device/status');
-        
+        this.subscribeToTopic('task/assign');
+        this.subscribeToTopic('task/result');
+        this.subscribeToTopic('/device/list');
+
         this.showNotification('监控连接成功', 'success');
     }
 

@@ -100,7 +100,12 @@ public class NodeInfo {
 
         } catch (Exception e) {
             System.err.println("Error parsing status message: " + e.getMessage());
-            e.printStackTrace();
         }
     }
+
+//    以deviceName为索引，删除对应信息
+    public static void deleteNodeInfo(String deviceName) {
+        nodeInfoMap.remove(deviceName);
+    }
+
 }

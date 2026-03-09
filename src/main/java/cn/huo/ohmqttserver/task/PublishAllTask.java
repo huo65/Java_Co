@@ -26,8 +26,6 @@ public class PublishAllTask {
 	@Autowired
 	private MqttServer mqttServer;
 	@Autowired
-	private AliveService aliveService;
-	@Autowired
 	private OptimizationService optimizationService;
 	@Autowired
 	TaskSampleService taskSampleService;
@@ -50,7 +48,7 @@ public class PublishAllTask {
 	 */
 	@Scheduled(fixedDelay = 12000)
 	public void alive() {
-		Set<String> aliveList = aliveService.getAliveList();
+		Set<String> aliveList = AliveService.getAliveList();
 		String message = null;
 		if (aliveList!= null && !aliveList.isEmpty()) {
 			message = createAliveMessage(aliveList);
@@ -103,10 +101,10 @@ public class PublishAllTask {
 	 */
 	@Scheduled(fixedDelay = 3600000)
 	public void clearNodeInfoMap() {
-		Set<String> aliveList = aliveService.getAliveList();
+		Set<String> aliveList = AliveService.getAliveList();
 		for (String deviceName : NodeInfo.getAllNodeInfos().keySet()) {
 			if (!aliveList.contains(deviceName)) {
-				NodeInfo.getAllNodeInfos().remove(deviceName);
+				NodeInfo.deleteNodeInfo(deviceName);
 			}
 		}
 	}

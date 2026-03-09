@@ -14,18 +14,16 @@ import java.util.Set;
 @Getter
 @Service
 public class AliveService {
-	private Set<String> aliveList = new HashSet<>();
+	@Getter
+	private static final Set<String> aliveList = new HashSet<>();
 //	public void initAliveList(){
 //		aliveList = new HashSet<>();
 //	}
-	public void addNode(String deviceName){
+	public static void addNode(String deviceName){
 		aliveList.add(deviceName);
 	}
-	public void removeNode(String deviceName){
+	public static void removeNode(String deviceName){
 		aliveList.remove(deviceName);
 	}
 
-	public Set<String> getAliveList() {
-		return aliveList;
-	}
 }

@@ -39,8 +39,7 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 	@Autowired
 	private ApplicationContext applicationContext;
 	private MqttServerTemplate mqttServerTemplate;
-	@Autowired
-	private AliveService aliveService;
+
 	@Autowired
 	private TaskSampleRepository taskSampleRepository;
     @Autowired
@@ -60,7 +59,7 @@ public class MqttServerMessageListener implements IMqttMessageListener, SmartIni
 
 			List<NodeStatus> nodeStatusList = new ArrayList<>();
 			Map<String, NodeStatus> nodeStatusMap = new HashMap<>();
-			aliveService.getAliveList().forEach(deviceName -> {
+			AliveService.getAliveList().forEach(deviceName -> {
 				val nodeInfo = allNodeInfos.get(deviceName);
 				if (nodeInfo != null) {
 					NodeStatus nodeStatus = new NodeStatus(nodeInfo.getCpuUsage(), nodeInfo.getMemoryUsage(), nodeInfo.getPowerRemain(), nodeInfo.getStorageRemain(), nodeInfo.getLatency());

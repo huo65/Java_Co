@@ -14,18 +14,16 @@ import org.tio.core.ChannelContext;
 @Service
 public class MqttConnectStatusListener implements IMqttConnectStatusListener {
 	private static final Logger logger = LoggerFactory.getLogger(MqttConnectStatusListener.class);
-	@Autowired
-	private AliveService aliveService;
 
 	@Override
 	public void online(ChannelContext context, String clientId, String username) {
-		aliveService.addNode(clientId);
+		AliveService.addNode(clientId);
 		logger.info("Mqtt clientId:{} username:{} online.", clientId, username);
 	}
 
 	@Override
 	public void offline(ChannelContext context, String clientId, String username, String reason) {
-		aliveService.removeNode(clientId);
+		AliveService.removeNode(clientId);
 		logger.info("Mqtt clientId:{} username:{} offline reason:{}.", clientId, username, reason);
 	}
 }

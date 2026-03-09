@@ -99,11 +99,16 @@ public class PublishAllTask {
 	}
 
 	/**
-	 * nodeInfoMap每天定时清理，防止僵尸节点堆积
+	 * nodeInfoMap定时删除僵尸节点(1h)
 	 */
-	@Scheduled(fixedDelay = 86400000)
+	@Scheduled(fixedDelay = 3600000)
 	public void clearNodeInfoMap() {
-		NodeInfo.clear();
+		Set<String> aliveList = aliveService.getAliveList();
+		for (String deviceName : NodeInfo.getAllNodeInfos().keySet()) {
+			if (!aliveList.contains(deviceName)) {
+				NodeInfo.getAllNodeInfos().remove(deviceName);
+			}
+		}
 	}
 
 }

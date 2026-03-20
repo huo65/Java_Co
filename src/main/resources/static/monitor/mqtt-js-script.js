@@ -786,14 +786,11 @@ class MqttJsMonitor {
         const cardClass = client.connected ? 'device-card online' : 'device-card offline';
         
         // 格式化数值显示
-        const formatPercent = (val) => `${(val || 0).toFixed(1)}%`;
-        const formatStorage = (val) => {
-            if (val >= 1024) {
-                return `${(val / 1024).toFixed(2)} GB`;
-            }
-            return `${val.toFixed(2)} MB`;
-        };
-        const formatLatency = (val) => `${(val || 0).toFixed(0)} ms`;
+        const formatPercent = (val) => `${((val || 0) * 1).toFixed(2)}%`;
+        // 存储返回的是百分比小数（如 0.9473 表示 94.73%）
+        const formatStorage = (val) => `${((val || 0) * 1).toFixed(2)}%`;
+        // 延迟返回的是秒，转换为毫秒
+        const formatLatency = (val) => `${((val || 0) * 1).toFixed(2)} ms`;
         
         // 根据使用率确定颜色等级
         const getUsageLevel = (val) => {

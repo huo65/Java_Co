@@ -10,12 +10,18 @@ import java.time.LocalDateTime;
 /**
  * 回归模型封装
  * 包含模型系数和元数据
+ * 适配整数百分比格式（0-100）
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegressionModel {
+
+    /**
+     * 百分比转换因子：将0-100整数转换为0-1小数
+     */
+    public static final double PERCENTAGE_SCALE = 100.0;
 
     /**
      * 回归系数 [intercept, cpuCoef, memCoef, powerCoef, storageCoef, latencyCoef]
@@ -49,12 +55,13 @@ public class RegressionModel {
 
     /**
      * 预测任务执行时间
+     * 适配整数百分比格式（0-100）
      *
-     * @param cpuUtil       CPU使用率
-     * @param memUsage      内存使用率
-     * @param powerRemain   剩余电量
-     * @param storageRemain 剩余存储
-     * @param latency       网络延迟
+     * @param cpuUtil       CPU使用率 (0-100)
+     * @param memUsage      内存使用率 (0-100)
+     * @param powerRemain   剩余电量 (0-100)
+     * @param storageRemain 剩余存储 (0-100)
+     * @param latency       网络延迟 (0-100)
      * @return 预测执行时间
      */
     public double predict(double cpuUtil, double memUsage, double powerRemain,
@@ -63,18 +70,26 @@ public class RegressionModel {
             throw new IllegalStateException("模型尚未训练或系数不完整");
         }
 
+        // 将整数百分比转换为小数进行计算
+        double cpuUtilNorm = cpuUtil / PERCENTAGE_SCALE;
+        double memUsageNorm = memUsage / PERCENTAGE_SCALE;
+        double powerRemainNorm = powerRemain / PERCENTAGE_SCALE;
+        double storageRemainNorm = storageRemain / PERCENTAGE_SCALE;
+        double latencyNorm = latency / PERCENTAGE_SCALE;
+
         return coefficients[0] +
-               coefficients[1] * (1 - cpuUtil) +
-               coefficients[2] * (1 - memUsage) +
-               coefficients[3] * powerRemain +
-               coefficients[4] * storageRemain +
-               coefficients[5] * (1 - latency);
+               coefficients[1] * (1 - cpuUtilNorm) +
+               coefficients[2] * (1 - memUsageNorm) +
+               coefficients[3] * powerRemainNorm +
+               coefficients[4] * storageRemainNorm +
+               coefficients[5] * (1 - latencyNorm);
     }
 
     /**
      * 使用特征数组预测
+     * 适配整数百分比格式（0-100）
      *
-     * @param features 特征数组 [cpuUsage, memoryUsage, powerRemain, storageRemain, latency]
+     * @param features 特征数组 [cpuUsage(0-100), memoryUsage(0-100), powerRemain(0-100), storageRemain(0-100), latency(0-100)]
      * @return 预测执行时间
      */
     public double predict(double[] features) {

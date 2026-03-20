@@ -29,6 +29,11 @@ public class DataQualityChecker {
     private static final double MAX_MISSING_RATIO = 0.2;
 
     /**
+     * 百分比数据的最大值（整数格式）
+     */
+    private static final double PERCENTAGE_MAX = 100.0;
+
+    /**
      * 执行数据质量检查
      *
      * @param samples 样本列表
@@ -186,11 +191,11 @@ public class DataQualityChecker {
                     break;
                 }
 
-                // 检查特征值是否在合理范围内 [0, 1]
+                // 检查特征值是否在合理范围内 [0, 100]（整数百分比格式）
                 for (int j = 0; j < 5; j++) {
-                    if (features[j] < 0 || features[j] > 1) {
+                    if (features[j] < 0 || features[j] > PERCENTAGE_MAX) {
                         report.addWarning(String.format(
-                            "样本%d: 特征%d超出范围[0,1]: %.4f", i, j, features[j]
+                            "样本%d: 特征%d超出范围[0,100]: %.2f", i, j, features[j]
                         ));
                     }
                 }

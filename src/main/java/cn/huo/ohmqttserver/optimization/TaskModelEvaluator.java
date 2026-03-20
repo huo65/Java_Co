@@ -216,8 +216,14 @@ public class TaskModelEvaluator {
     }
 
     /**
+     * 百分比转换因子：将0-100整数转换为0-1小数
+     */
+    public static final double PERCENTAGE_SCALE = 100.0;
+
+    /**
      * 目标3：能耗控制
      * 基于剩余电量计算能耗指标
+     * 适配整数百分比格式（0-100）
      * @param omega 权重参数数组 [w1, w2, w3, w4, w5]
      * @return 能耗指标（越小越好）
      */
@@ -228,8 +234,9 @@ public class TaskModelEvaluator {
         for (NodeSelectionResult selection : selections) {
             if (selection.getNodeFeatures() != null) {
                 // 能耗与剩余电量成反比，剩余电量越少，能耗成本越高
-                // nodeFeatures[2] 是 powerRemain
-                totalEnergyCost += (1 - selection.getNodeFeatures()[2]);
+                // nodeFeatures[2] 是 powerRemain (0-100整数)
+                double powerRemainNorm = selection.getNodeFeatures()[2] / PERCENTAGE_SCALE;
+                totalEnergyCost += (1 - powerRemainNorm);
             }
         }
 

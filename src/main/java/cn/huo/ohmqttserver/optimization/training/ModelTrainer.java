@@ -14,10 +14,16 @@ import java.util.UUID;
 /**
  * 模型训练器
  * 负责训练线性回归模型并提供备选方案
+ * 适配整数百分比格式（0-100）
  */
 @Slf4j
 @Component
 public class ModelTrainer {
+
+    /**
+     * 百分比转换因子：将0-100整数转换为0-1小数
+     */
+    public static final double PERCENTAGE_SCALE = 100.0;
 
     /**
      * 默认回归系数（当训练失败时使用）
@@ -52,12 +58,19 @@ public class ModelTrainer {
 
             double[] chosenFeatures = sample.getChosenNodeFeatures();
             if (chosenFeatures != null && chosenFeatures.length >= 5) {
+                // 将整数百分比(0-100)转换为小数(0-1)后计算特征
+                double cpuUtil = chosenFeatures[0] / PERCENTAGE_SCALE;
+                double memUsage = chosenFeatures[1] / PERCENTAGE_SCALE;
+                double powerRemain = chosenFeatures[2] / PERCENTAGE_SCALE;
+                double storageRemain = chosenFeatures[3] / PERCENTAGE_SCALE;
+                double latency = chosenFeatures[4] / PERCENTAGE_SCALE;
+
                 // 转换特征: (1-CPU), (1-MEM), POWER, STORAGE, (1-LATENCY)
-                x[i][0] = 1 - chosenFeatures[0];
-                x[i][1] = 1 - chosenFeatures[1];
-                x[i][2] = chosenFeatures[2];
-                x[i][3] = chosenFeatures[3];
-                x[i][4] = 1 - chosenFeatures[4];
+                x[i][0] = 1 - cpuUtil;
+                x[i][1] = 1 - memUsage;
+                x[i][2] = powerRemain;
+                x[i][3] = storageRemain;
+                x[i][4] = 1 - latency;
             }
         }
 

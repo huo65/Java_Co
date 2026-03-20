@@ -3,6 +3,7 @@ package cn.huo.ohmqttserver;
 import cn.huo.ohmqttserver.optimization.OmegaOptimizer;
 import cn.huo.ohmqttserver.optimization.dao.TaskSample;
 import cn.huo.ohmqttserver.optimization.dao.NodeStatus;
+import cn.huo.ohmqttserver.optimization.dto.OptimizationSample;
 import cn.huo.ohmqttserver.service.TaskSampleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class OhMqttServerApplicationTests {
+
 	@Autowired
 	private TaskSampleRepository taskSampleRepository;
+
+	@Autowired
+	private OmegaOptimizer omegaOptimizer;
 
 	@Test
 	public void saveSample() {
@@ -34,91 +39,91 @@ class OhMqttServerApplicationTests {
 	void testOptimizeWithBalancedLoadSamples() {
 		// 均衡负载场景测试数据：CPU权重较大的参数配置环境
 		// 测试数据为非理想选择：CPU低但内存高的节点，结果应该降低cpu的权重
-		List<TaskSample> balancedLoadSamples = Arrays.asList(
-			new TaskSample("balanced_load_cpu_heavy_1",
+		List<OptimizationSample> balancedLoadSamples = Arrays.asList(
+			createSample("balanced_load_cpu_heavy_1",
 				Arrays.asList(
-					new NodeStatus(0.2, 0.8, 0.6, 0.5, 0.4), // CPU低但内存高的节点
-					new NodeStatus(0.7, 0.3, 0.6, 0.5, 0.4), // CPU高但内存低的节点
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)  // 均衡节点
+					new double[]{0.2, 0.8, 0.6, 0.5, 0.4}, // CPU低但内存高的节点
+					new double[]{0.7, 0.3, 0.6, 0.5, 0.4}, // CPU高但内存低的节点
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}  // 均衡节点
 				),
-				new NodeStatus(0.2, 0.8, 0.6, 0.5, 0.4), 10.0
+				0, 10.0
 			),
-			new TaskSample("balanced_load_cpu_heavy_2",
+			createSample("balanced_load_cpu_heavy_2",
 				Arrays.asList(
-					new NodeStatus(0.1, 0.9, 0.7, 0.4, 0.3),
-					new NodeStatus(0.8, 0.2, 0.5, 0.6, 0.5),
-					new NodeStatus(0.4, 0.6, 0.6, 0.5, 0.4)
+					new double[]{0.1, 0.9, 0.7, 0.4, 0.3},
+					new double[]{0.8, 0.2, 0.5, 0.6, 0.5},
+					new double[]{0.4, 0.6, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.1, 0.9, 0.7, 0.4, 0.3), 11.0
+				0, 11.0
 			),
-			new TaskSample("balanced_load_cpu_heavy_3",
+			createSample("balanced_load_cpu_heavy_3",
 				Arrays.asList(
-					new NodeStatus(0.3, 0.7, 0.5, 0.6, 0.5),
-					new NodeStatus(0.6, 0.4, 0.7, 0.4, 0.3),
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)
+					new double[]{0.3, 0.7, 0.5, 0.6, 0.5},
+					new double[]{0.6, 0.4, 0.7, 0.4, 0.3},
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.3, 0.7, 0.5, 0.6, 0.5), 9.5
+				0, 9.5
 			),
-			new TaskSample("balanced_load_cpu_heavy_4",
+			createSample("balanced_load_cpu_heavy_4",
 				Arrays.asList(
-					new NodeStatus(0.25, 0.75, 0.6, 0.5, 0.4),
-					new NodeStatus(0.75, 0.25, 0.6, 0.5, 0.4),
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)
+					new double[]{0.25, 0.75, 0.6, 0.5, 0.4},
+					new double[]{0.75, 0.25, 0.6, 0.5, 0.4},
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.25, 0.75, 0.6, 0.5, 0.4), 10.5
+				0, 10.5
 			),
-			new TaskSample("balanced_load_cpu_heavy_5",
+			createSample("balanced_load_cpu_heavy_5",
 				Arrays.asList(
-					new NodeStatus(0.15, 0.85, 0.7, 0.4, 0.3),
-					new NodeStatus(0.85, 0.15, 0.5, 0.6, 0.5),
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)
+					new double[]{0.15, 0.85, 0.7, 0.4, 0.3},
+					new double[]{0.85, 0.15, 0.5, 0.6, 0.5},
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.15, 0.85, 0.7, 0.4, 0.3), 11.5
+				0, 11.5
 			),
-			new TaskSample("balanced_load_cpu_heavy_6",
+			createSample("balanced_load_cpu_heavy_6",
 				Arrays.asList(
-					new NodeStatus(0.35, 0.65, 0.5, 0.6, 0.5),
-					new NodeStatus(0.65, 0.35, 0.7, 0.4, 0.3),
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)
+					new double[]{0.35, 0.65, 0.5, 0.6, 0.5},
+					new double[]{0.65, 0.35, 0.7, 0.4, 0.3},
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.35, 0.65, 0.5, 0.6, 0.5), 9.0
+				0, 9.0
 			),
-			new TaskSample("balanced_load_cpu_heavy_7",
+			createSample("balanced_load_cpu_heavy_7",
 				Arrays.asList(
-					new NodeStatus(0.2, 0.8, 0.8, 0.3, 0.2),
-					new NodeStatus(0.7, 0.3, 0.4, 0.7, 0.6),
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)
+					new double[]{0.2, 0.8, 0.8, 0.3, 0.2},
+					new double[]{0.7, 0.3, 0.4, 0.7, 0.6},
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.2, 0.8, 0.8, 0.3, 0.2), 12.0
+				0, 12.0
 			),
-			new TaskSample("balanced_load_cpu_heavy_8",
+			createSample("balanced_load_cpu_heavy_8",
 				Arrays.asList(
-					new NodeStatus(0.1, 0.9, 0.6, 0.5, 0.4),
-					new NodeStatus(0.9, 0.1, 0.6, 0.5, 0.4),
-					new NodeStatus(0.5, 0.5, 0.6, 0.5, 0.4)
+					new double[]{0.1, 0.9, 0.6, 0.5, 0.4},
+					new double[]{0.9, 0.1, 0.6, 0.5, 0.4},
+					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.1, 0.9, 0.6, 0.5, 0.4), 13.0
+				0, 13.0
 			),
-			new TaskSample("balanced_load_cpu_heavy_9",
+			createSample("balanced_load_cpu_heavy_9",
 				Arrays.asList(
-					new NodeStatus(0.3, 0.7, 0.7, 0.4, 0.3),
-					new NodeStatus(0.6, 0.4, 0.5, 0.6, 0.5),
-					new NodeStatus(0.45, 0.55, 0.6, 0.5, 0.4)
+					new double[]{0.3, 0.7, 0.7, 0.4, 0.3},
+					new double[]{0.6, 0.4, 0.5, 0.6, 0.5},
+					new double[]{0.45, 0.55, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.3, 0.7, 0.7, 0.4, 0.3), 8.5
+				0, 8.5
 			),
-			new TaskSample("balanced_load_cpu_heavy_10",
+			createSample("balanced_load_cpu_heavy_10",
 				Arrays.asList(
-					new NodeStatus(0.25, 0.75, 0.5, 0.6, 0.5),
-					new NodeStatus(0.75, 0.25, 0.7, 0.4, 0.3),
-					new NodeStatus(0.55, 0.45, 0.6, 0.5, 0.4)
+					new double[]{0.25, 0.75, 0.5, 0.6, 0.5},
+					new double[]{0.75, 0.25, 0.7, 0.4, 0.3},
+					new double[]{0.55, 0.45, 0.6, 0.5, 0.4}
 				),
-				new NodeStatus(0.25, 0.75, 0.5, 0.6, 0.5), 9.8
+				0, 9.8
 			)
 		);
 
-		// Execute optimization
-		double[] omega = OmegaOptimizer.optimize(balancedLoadSamples);
+		// Execute optimization using Spring-managed optimizer
+		double[] omega = omegaOptimizer.optimize(balancedLoadSamples);
 
 		// Validate results
 		assertNotNull(omega, "Omega array should not be null");
@@ -134,99 +139,111 @@ class OhMqttServerApplicationTests {
 		assertEquals(1.0, sum, 0.01, "Omega values should sum to 1.0");
 
 		// Print results for debugging
-		System.out.printf("Optimized ω values (normal samples): [%.4f, %.4f, %.4f, %.4f, %.4f]%n",
+		System.out.printf("Optimized ω values (balanced load samples): [%.4f, %.4f, %.4f, %.4f, %.4f]%n",
 				omega[0], omega[1], omega[2], omega[3], omega[4]);
+	}
+
+	/**
+	 * 辅助方法：创建OptimizationSample
+	 */
+	private OptimizationSample createSample(String taskId, List<double[]> candidates, int chosenIndex, double duration) {
+		return OptimizationSample.builder()
+				.taskId(taskId)
+				.candidateNodeFeatures(candidates)
+				.chosenNodeIndex(chosenIndex)
+				.duration(duration)
+				.build();
 	}
 
 	@Test
 	void testOptimizeWithNormalSamples() {
 		// 电量敏感场景测试数据：对电量因素敏感的场景环境
 		// 测试数据为非理想选择：CPU低且电量低的节点，结果应该提高电量的权重
-		List<TaskSample> powerSensitiveSamples = Arrays.asList(
-			new TaskSample("power_sensitive_low_power_1",
+		List<OptimizationSample> powerSensitiveSamples = Arrays.asList(
+			createSample("power_sensitive_low_power_1",
 				Arrays.asList(
-					new NodeStatus(0.2, 0.3, 0.1, 0.8, 0.2), // 负载低但电量很少的节点
-					new NodeStatus(0.6, 0.5, 0.8, 0.5, 0.4), // 负载高但电量充足的节点
-					new NodeStatus(0.4, 0.4, 0.5, 0.6, 0.3)  // 均衡节点
+					new double[]{0.2, 0.3, 0.1, 0.8, 0.2}, // 负载低但电量很少的节点
+					new double[]{0.6, 0.5, 0.8, 0.5, 0.4}, // 负载高但电量充足的节点
+					new double[]{0.4, 0.4, 0.5, 0.6, 0.3}  // 均衡节点
 				),
-				new NodeStatus(0.2, 0.3, 0.1, 0.8, 0.2), 8.0
+				0, 8.0
 			),
-			new TaskSample("power_sensitive_low_power_2",
+			createSample("power_sensitive_low_power_2",
 				Arrays.asList(
-					new NodeStatus(0.3, 0.4, 0.2, 0.7, 0.1),
-					new NodeStatus(0.5, 0.6, 0.7, 0.6, 0.5),
-					new NodeStatus(0.4, 0.5, 0.4, 0.5, 0.3)
+					new double[]{0.3, 0.4, 0.2, 0.7, 0.1},
+					new double[]{0.5, 0.6, 0.7, 0.6, 0.5},
+					new double[]{0.4, 0.5, 0.4, 0.5, 0.3}
 				),
-				new NodeStatus(0.3, 0.4, 0.2, 0.7, 0.1), 7.5
+				0, 7.5
 			),
-			new TaskSample("power_sensitive_low_power_3",
+			createSample("power_sensitive_low_power_3",
 				Arrays.asList(
-					new NodeStatus(0.1, 0.2, 0.05, 0.9, 0.15),
-					new NodeStatus(0.7, 0.6, 0.9, 0.4, 0.6),
-					new NodeStatus(0.4, 0.4, 0.5, 0.6, 0.3)
+					new double[]{0.1, 0.2, 0.05, 0.9, 0.15},
+					new double[]{0.7, 0.6, 0.9, 0.4, 0.6},
+					new double[]{0.4, 0.4, 0.5, 0.6, 0.3}
 				),
-				new NodeStatus(0.1, 0.2, 0.05, 0.9, 0.15), 8.5
+				0, 8.5
 			),
-			new TaskSample("power_sensitive_low_power_4",
+			createSample("power_sensitive_low_power_4",
 				Arrays.asList(
-					new NodeStatus(0.25, 0.35, 0.15, 0.85, 0.25),
-					new NodeStatus(0.65, 0.55, 0.85, 0.55, 0.45),
-					new NodeStatus(0.45, 0.45, 0.55, 0.65, 0.35)
+					new double[]{0.25, 0.35, 0.15, 0.85, 0.25},
+					new double[]{0.65, 0.55, 0.85, 0.55, 0.45},
+					new double[]{0.45, 0.45, 0.55, 0.65, 0.35}
 				),
-				new NodeStatus(0.25, 0.35, 0.15, 0.85, 0.25), 8.2
+				0, 8.2
 			),
-			new TaskSample("power_sensitive_low_power_5",
+			createSample("power_sensitive_low_power_5",
 				Arrays.asList(
-					new NodeStatus(0.15, 0.25, 0.08, 0.88, 0.18),
-					new NodeStatus(0.55, 0.45, 0.75, 0.58, 0.48),
-					new NodeStatus(0.35, 0.35, 0.45, 0.68, 0.28)
+					new double[]{0.15, 0.25, 0.08, 0.88, 0.18},
+					new double[]{0.55, 0.45, 0.75, 0.58, 0.48},
+					new double[]{0.35, 0.35, 0.45, 0.68, 0.28}
 				),
-				new NodeStatus(0.15, 0.25, 0.08, 0.88, 0.18), 7.8
+				0, 7.8
 			),
-			new TaskSample("power_sensitive_low_power_6",
+			createSample("power_sensitive_low_power_6",
 				Arrays.asList(
-					new NodeStatus(0.35, 0.45, 0.25, 0.75, 0.12),
-					new NodeStatus(0.6, 0.5, 0.8, 0.5, 0.4),
-					new NodeStatus(0.45, 0.45, 0.5, 0.6, 0.3)
+					new double[]{0.35, 0.45, 0.25, 0.75, 0.12},
+					new double[]{0.6, 0.5, 0.8, 0.5, 0.4},
+					new double[]{0.45, 0.45, 0.5, 0.6, 0.3}
 				),
-				new NodeStatus(0.35, 0.45, 0.25, 0.75, 0.12), 7.2
+				0, 7.2
 			),
-			new TaskSample("power_sensitive_low_power_7",
+			createSample("power_sensitive_low_power_7",
 				Arrays.asList(
-					new NodeStatus(0.2, 0.3, 0.1, 0.9, 0.15),
-					new NodeStatus(0.7, 0.6, 0.85, 0.4, 0.55),
-					new NodeStatus(0.4, 0.4, 0.5, 0.6, 0.3)
+					new double[]{0.2, 0.3, 0.1, 0.9, 0.15},
+					new double[]{0.7, 0.6, 0.85, 0.4, 0.55},
+					new double[]{0.4, 0.4, 0.5, 0.6, 0.3}
 				),
-				new NodeStatus(0.2, 0.3, 0.1, 0.9, 0.15), 9.0
+				0, 9.0
 			),
-			new TaskSample("power_sensitive_low_power_8",
+			createSample("power_sensitive_low_power_8",
 				Arrays.asList(
-					new NodeStatus(0.1, 0.1, 0.05, 0.95, 0.1),
-					new NodeStatus(0.8, 0.7, 0.9, 0.3, 0.6),
-					new NodeStatus(0.45, 0.45, 0.55, 0.65, 0.35)
+					new double[]{0.1, 0.1, 0.05, 0.95, 0.1},
+					new double[]{0.8, 0.7, 0.9, 0.3, 0.6},
+					new double[]{0.45, 0.45, 0.55, 0.65, 0.35}
 				),
-				new NodeStatus(0.1, 0.1, 0.05, 0.95, 0.1), 9.5
+				0, 9.5
 			),
-			new TaskSample("power_sensitive_low_power_9",
+			createSample("power_sensitive_low_power_9",
 				Arrays.asList(
-					new NodeStatus(0.3, 0.4, 0.2, 0.8, 0.18),
-					new NodeStatus(0.5, 0.5, 0.7, 0.6, 0.45),
-					new NodeStatus(0.4, 0.4, 0.5, 0.6, 0.3)
+					new double[]{0.3, 0.4, 0.2, 0.8, 0.18},
+					new double[]{0.5, 0.5, 0.7, 0.6, 0.45},
+					new double[]{0.4, 0.4, 0.5, 0.6, 0.3}
 				),
-				new NodeStatus(0.3, 0.4, 0.2, 0.8, 0.18), 7.0
+				0, 7.0
 			),
-			new TaskSample("power_sensitive_low_power_10",
+			createSample("power_sensitive_low_power_10",
 				Arrays.asList(
-					new NodeStatus(0.2, 0.2, 0.15, 0.85, 0.22),
-					new NodeStatus(0.6, 0.6, 0.8, 0.5, 0.48),
-					new NodeStatus(0.4, 0.4, 0.5, 0.6, 0.3)
+					new double[]{0.2, 0.2, 0.15, 0.85, 0.22},
+					new double[]{0.6, 0.6, 0.8, 0.5, 0.48},
+					new double[]{0.4, 0.4, 0.5, 0.6, 0.3}
 				),
-				new NodeStatus(0.2, 0.2, 0.15, 0.85, 0.22), 8.8
+				0, 8.8
 			)
 		);
 
-		// Execute optimization
-		double[] omega = OmegaOptimizer.optimize(powerSensitiveSamples);
+		// Execute optimization using Spring-managed optimizer
+		double[] omega = omegaOptimizer.optimize(powerSensitiveSamples);
 
 		// Validate results
 		assertNotNull(omega, "Omega array should not be null");
@@ -242,7 +259,7 @@ class OhMqttServerApplicationTests {
 		assertEquals(1.0, sum, 0.01, "Omega values should sum to 1.0");
 
 		// Print results for debugging
-		System.out.printf("Optimized ω values (normal samples): [%.4f, %.4f, %.4f, %.4f, %.4f]%n",
+		System.out.printf("Optimized ω values (power sensitive samples): [%.4f, %.4f, %.4f, %.4f, %.4f]%n",
 			omega[0], omega[1], omega[2], omega[3], omega[4]);
 	}
 

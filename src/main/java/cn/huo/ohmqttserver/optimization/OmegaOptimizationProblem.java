@@ -1,5 +1,6 @@
 package cn.huo.ohmqttserver.optimization;
 
+import cn.huo.ohmqttserver.optimization.config.OptimizationConfig;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.core.variable.RealVariable;
@@ -8,19 +9,31 @@ import org.moeaframework.problem.AbstractProblem;
 /**
  * 构造参数优化问题
  * 基于NSGA-II算法的多目标优化问题定义
+ * 优化版本：支持配置注入
  * @author huozj
  */
 public class OmegaOptimizationProblem extends AbstractProblem {
 
     private final TaskModelEvaluator evaluator;
+    private final OptimizationConfig config;
 
     /**
      * 构造函数
      * @param evaluator 任务模型评估器
      */
     public OmegaOptimizationProblem(TaskModelEvaluator evaluator) {
+        this(evaluator, new OptimizationConfig());
+    }
+
+    /**
+     * 构造函数（带配置）
+     * @param evaluator 任务模型评估器
+     * @param config 优化配置
+     */
+    public OmegaOptimizationProblem(TaskModelEvaluator evaluator, OptimizationConfig config) {
         super(5, 3); // 五个 omega 参数，三个优化目标
         this.evaluator = evaluator;
+        this.config = config != null ? config : new OptimizationConfig();
     }
 
     /**

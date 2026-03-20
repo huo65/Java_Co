@@ -45,9 +45,29 @@ mqtt:
       truststore-pass:          # 可选参数：ssl 双向认证 truststore 密码
       client-auth: none         # 是否需要客户端认证（双向认证），默认：NONE（不需要）
 
+# 参数优化配置
+optimization:
+  nsga2:
+    population-size: 100              # 种群大小
+    max-evaluations: 1000             # 最大评估次数
+    crossover-probability: 1.0        # 交叉概率
+    crossover-distribution-index: 15  # 交叉分布指数
+    mutation-probability: 0.2         # 变异概率
+    mutation-distribution-index: 0.1  # 变异分布指数
+    tournament-size: 2                # 锦标赛选择大小
+    decision-strategy: weighted-sum   # 决策策略: weighted-sum, ideal-point
+    objective-weights: [0.5, 0.3, 0.2] # 目标权重 [延迟, 负载均衡, 能耗]
+    min-sample-size: 10               # 最小样本数量
+    enable-model-cache: true          # 启用模型缓存
+    model-cache-expire-minutes: 30    # 模型缓存过期时间
+    enable-selection-cache: true      # 启用节点选择缓存
+    convergence-threshold: 1.0E-6     # 收敛阈值
+    min-generations: 50               # 最小迭代代数
+
 logging:
   level:
     root: info
+    cn.huo.ohmqttserver.optimization: debug # 优化模块日志
     server: info # t-io 服务端默认日志
     org.tio: info # t-io 服务端默认日志
     org.dromara.mica.mqtt: info # mica-monitor 日志

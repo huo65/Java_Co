@@ -1,137 +1,113 @@
 package cn.huo.ohmqttserver.optimization;
 
-import cn.huo.ohmqttserver.optimization.dao.NodeStatus;
-import cn.huo.ohmqttserver.optimization.dao.TaskSample;
-import org.apache.commons.math3.linear.*;
-import org.apache.commons.math3.stat.regression.GLSMultipleLinearRegression;
-import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+import cn.huo.ohmqttserver.optimization.dto.NodeSelectionResult;
+import cn.huo.ohmqttserver.optimization.dto.OptimizationSample;
+import cn.huo.ohmqttserver.optimization.dto.RegressionModel;
+import cn.huo.ohmqttserver.optimization.training.ModelCache;
+import cn.huo.ohmqttserver.optimization.training.ModelTrainer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 任务模型评估器，提供评估需要的方法
  * 基于文档要求实现动态优化LoadScore权重参数的评估功能
+ * 优化版本：支持缓存、DTO转换、性能优化
  * @author huozj
  */
+@Slf4j
+@Component
 public class TaskModelEvaluator {
 
-    private final List<TaskSample> samples;
-	private double[] beta = {0.0, 1.0, 1.0, 1.0, 1.0,1.0};
+    private final ModelTrainer modelTrainer;
+    private final ModelCache modelCache;
+
+    private List<OptimizationSample> samples;
+    private RegressionModel regressionModel;
 
     /**
-     * 构造函数
-     * @param samples 任务样本列表，用于训练模型和评估
+     * 节点选择结果缓存（omega -> 选择结果）
      */
-    public TaskModelEvaluator(List<TaskSample> samples) {
-        this.samples = samples;
+    private final Map<String, List<NodeSelectionResult>> selectionCache = new HashMap<>();
+
+    @Autowired
+    public TaskModelEvaluator(ModelTrainer modelTrainer, ModelCache modelCache) {
+        this.modelTrainer = modelTrainer;
+        this.modelCache = modelCache;
     }
 
     /**
-     * 训练线性回归模型，用于预测任务执行时间
-     * 特征包括：CPU使用率、内存使用率、剩余电量、剩余存储空间、网络延迟
+     * 设置样本数据（用于非Spring管理的调用）
+     * @param samples 优化样本列表
      */
+    public void setSamples(List<OptimizationSample> samples) {
+        this.samples = samples;
+        this.selectionCache.clear();
+    }
+
     /**
-     * 训练线性回归模型，用于预测任务执行时间
-     * 特征包括：CPU使用率、内存使用率、剩余电量、剩余存储空间、网络延迟
+     * 获取当前样本
+     * @return 样本列表
      */
-    public void trainModel(){
-        int n = samples.size();
-        double[] y = new double[n];
-        double[][] x = new double[n][5];
+    public List<OptimizationSample> getSamples() {
+        return samples;
+    }
 
-        // 先填充数据
-        for (int i = 0; i < n; i++) {
-            TaskSample ts = samples.get(i);
-            y[i] = ts.getDuration();
-            // 转换特征为文档要求的格式
-            x[i][0] = 1 - ts.getChoseNode().cpuUsage;
-            x[i][1] = 1 - ts.getChoseNode().memoryUsage;
-            x[i][2] = ts.getChoseNode().powerRemain;
-            x[i][3] = ts.getChoseNode().storageRemain;
-            x[i][4] = 1 - ts.getChoseNode().latency;
-        }
-
-        // 检查数据质量
-        if (!validateData(x, y)) {
-            System.out.println("数据验证失败，使用默认参数");
-            this.beta = new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0}; // 默认系数
+    /**
+     * 训练线性回归模型
+     * 优先使用缓存，如果缓存无效则重新训练
+     */
+    public void trainModel() {
+        // 尝试从缓存获取模型
+        RegressionModel cachedModel = modelCache.getCachedModel();
+        if (cachedModel != null && cachedModel.isValid()) {
+            log.debug("使用缓存的回归模型，版本: {}", cachedModel.getVersion());
+            this.regressionModel = cachedModel;
             return;
         }
 
-        try {
-            // 使用普通最小二乘法进行回归
-            OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
-            regression.newSampleData(y, x);
-            this.beta = regression.estimateRegressionParameters();
-        } catch (Exception e) {
-            // 使用岭回归作为备选方案
-            System.out.println("普通回归失败，使用岭回归方法: " + e.getMessage());
-            this.beta = ridgeRegression(x, y, 0.001);
+        // 训练新模型
+        if (samples == null || samples.isEmpty()) {
+            log.warn("训练样本为空，使用默认模型");
+            this.regressionModel = createDefaultModel();
+            return;
+        }
+
+        log.info("开始训练回归模型，样本数: {}", samples.size());
+        this.regressionModel = modelTrainer.train(samples);
+
+        // 缓存模型
+        if (regressionModel.isValid()) {
+            modelCache.cacheModel(regressionModel);
         }
     }
 
     /**
-     * 数据验证方法
+     * 强制重新训练模型（忽略缓存）
      */
-    private boolean validateData(double[][] x, double[] y) {
-        if (x.length < x[0].length) {
-            System.out.println("样本数量(" + x.length + ")少于特征数量(" + x[0].length + ")");
-            return false;
-        }
-
-        // 检查是否有重复行
-        for (int i = 0; i < x.length; i++) {
-            for (int j = i + 1; j < x.length; j++) {
-                boolean isDuplicate = true;
-                for (int k = 0; k < x[0].length; k++) {
-                    if (Math.abs(x[i][k] - x[j][k]) > 1e-10) {
-                        isDuplicate = false;
-                        break;
-                    }
-                }
-                if (isDuplicate) {
-                    System.out.println("发现重复数据行: " + i + " 和 " + j);
-                    return false;
-                }
-            }
-        }
-
-        return true;
+    public void retrainModel() {
+        modelCache.invalidate();
+        trainModel();
     }
 
-
-   /**
-     * 岭回归实现
+    /**
+     * 创建默认模型
      */
-    private double[] ridgeRegression(double[][] x, double[] y, double lambda) {
-        RealMatrix X = new Array2DRowRealMatrix(x);
-        RealVector Y = new ArrayRealVector(y);
+    private RegressionModel createDefaultModel() {
+        return RegressionModel.builder()
+                .coefficients(new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0})
+                .rSquared(0.0)
+                .build();
+    }
 
-        // 计算 X^T * X + λI
-        RealMatrix XtX = X.transpose().multiply(X);
-        RealMatrix identity = MatrixUtils.createRealIdentityMatrix(XtX.getColumnDimension());
-        RealMatrix regularized = XtX.add(identity.scalarMultiply(lambda));
-
-        // 分解求解
-        DecompositionSolver solver = new LUDecomposition(regularized).getSolver();
-        RealVector result = solver.solve(X.transpose().operate(Y));
-
-
-        double[] coefficients = result.toArray();
-        if (coefficients.length < 6) {
-            double[] paddedCoefficients = new double[6];
-            // 将原数组元素从索引1开始放置，索引0留作填充0
-            System.arraycopy(coefficients, 0, paddedCoefficients, 6 - coefficients.length, coefficients.length);
-            // 在首位填充0
-            for (int i = 0; i < 6 - coefficients.length; i++) {
-                paddedCoefficients[i] = 0;
-            }
-            return paddedCoefficients;
-        }
-
-        return coefficients;
+    /**
+     * 获取当前回归模型
+     * @return 回归模型
+     */
+    public RegressionModel getRegressionModel() {
+        return regressionModel;
     }
 
 
@@ -145,28 +121,35 @@ public class TaskModelEvaluator {
      * @param latency 网络延迟
      * @return 预测的执行时间
      */
-	private double predict(double cpuUtil, double memUsage, double powerRemain, double storageRemain, double latency) {
-		if (beta == null) {
-			throw new IllegalStateException("模型尚未训练");
-		}
+    private double predict(double cpuUtil, double memUsage, double powerRemain,
+                           double storageRemain, double latency) {
+        if (regressionModel == null) {
+            throw new IllegalStateException("模型尚未训练");
+        }
+        return regressionModel.predict(cpuUtil, memUsage, powerRemain, storageRemain, latency);
+    }
 
-		return beta[0] + beta[1]*(1 - cpuUtil) + beta[2]*(1 - memUsage) + 
-		       beta[3]*powerRemain + beta[4]*storageRemain + beta[5]*(1 - latency);
-	}
+    /**
+     * 使用特征数组预测
+     * @param features 特征数组 [cpuUsage, memoryUsage, powerRemain, storageRemain, latency]
+     * @return 预测的执行时间
+     */
+    private double predict(double[] features) {
+        if (regressionModel == null) {
+            throw new IllegalStateException("模型尚未训练");
+        }
+        return regressionModel.predict(features);
+    }
 
     /**
      * 计算负载评分
      * 公式：S = w1*(1-CPU) + w2*(1-MEM) + w3*POWER + w4*STORAGE + w5*(1-LATENCY)
-     * @param node 节点状态
+     * @param nodeFeatures 节点特征数组
      * @param omega 权重参数数组 [w1, w2, w3, w4, w5]
      * @return 负载评分（越高越好）
      */
-    private double calculateLoadScore(NodeStatus node, double[] omega) {
-        return omega[0] * (1 - node.cpuUsage) + 
-               omega[1] * (1 - node.memoryUsage) + 
-               omega[2] * node.powerRemain + 
-               omega[3] * node.storageRemain + 
-               omega[4] * (1 - node.latency);
+    private double calculateLoadScore(double[] nodeFeatures, double[] omega) {
+        return OptimizationSample.calculateLoadScore(nodeFeatures, omega);
     }
 
     /**
@@ -175,40 +158,18 @@ public class TaskModelEvaluator {
      * @param omega 权重参数数组 [w1, w2, w3, w4, w5]
      * @return 总预测执行时间
      */
-	public double evaluateDurationWithOmega(double[] omega) {
-		double totalDuration = 0.0;
+    public double evaluateDurationWithOmega(double[] omega) {
+        List<NodeSelectionResult> selections = selectNodesForAllTasks(omega);
 
-		for (TaskSample task : samples) {
-			NodeStatus bestNode = null;
-			double maxScore = Double.MIN_VALUE;
+        double totalDuration = 0.0;
+        for (NodeSelectionResult selection : selections) {
+            if (selection.getNodeFeatures() != null) {
+                totalDuration += predict(selection.getNodeFeatures());
+            }
+        }
 
-			for (NodeStatus node : task.getNodes()) {
-				// 计算负载评分，选择评分最高的节点
-				double score = calculateLoadScore(node, omega);
-
-				if (score > maxScore) {
-					maxScore = score;
-					bestNode = node;
-				}
-			}
-
-			// 用训练出的回归模型预测该任务在最优节点上的耗时
-			double predictedDuration = 0;
-			if (bestNode != null) {
-				predictedDuration = predict(
-					bestNode.cpuUsage,
-					bestNode.memoryUsage,
-					bestNode.powerRemain,
-					bestNode.storageRemain,
-					bestNode.latency
-				);
-			}
-
-			totalDuration += predictedDuration;
-		}
-
-		return totalDuration;
-	}
+        return totalDuration;
+    }
 
     /**
      * 目标2：终端设备负载均衡性
@@ -217,27 +178,16 @@ public class TaskModelEvaluator {
      * @return 负载均衡指标（越小越好）
      */
     public double evaluateLoadBalancing(double[] omega) {
+        List<NodeSelectionResult> selections = selectNodesForAllTasks(omega);
+
         // 收集每个终端的负载评分
         Map<String, Double> nodeLoadScores = new HashMap<>();
         Map<String, Integer> nodeTaskCounts = new HashMap<>();
 
-        for (TaskSample task : samples) {
-            NodeStatus bestNode = null;
-            double maxScore = Double.MIN_VALUE;
-
-            for (NodeStatus node : task.getNodes()) {
-                double score = calculateLoadScore(node, omega);
-                if (score > maxScore) {
-                    maxScore = score;
-                    bestNode = node;
-                }
-            }
-
-            if (bestNode != null) {
-                String nodeId = bestNode.hashCode() + "";
-                nodeLoadScores.put(nodeId, nodeLoadScores.getOrDefault(nodeId, 0.0) + maxScore);
-                nodeTaskCounts.put(nodeId, nodeTaskCounts.getOrDefault(nodeId, 0) + 1);
-            }
+        for (NodeSelectionResult selection : selections) {
+            String nodeId = selection.getNodeIdentifier();
+            nodeLoadScores.put(nodeId, nodeLoadScores.getOrDefault(nodeId, 0.0) + selection.getLoadScore());
+            nodeTaskCounts.put(nodeId, nodeTaskCounts.getOrDefault(nodeId, 0) + 1);
         }
 
         // 计算每个终端的平均负载评分
@@ -272,26 +222,105 @@ public class TaskModelEvaluator {
      * @return 能耗指标（越小越好）
      */
     public double evaluateEnergyConsumption(double[] omega) {
+        List<NodeSelectionResult> selections = selectNodesForAllTasks(omega);
+
         double totalEnergyCost = 0.0;
-
-        for (TaskSample task : samples) {
-            NodeStatus bestNode = null;
-            double maxScore = Double.MIN_VALUE;
-
-            for (NodeStatus node : task.getNodes()) {
-                double score = calculateLoadScore(node, omega);
-                if (score > maxScore) {
-                    maxScore = score;
-                    bestNode = node;
-                }
-            }
-
-            if (bestNode != null) {
+        for (NodeSelectionResult selection : selections) {
+            if (selection.getNodeFeatures() != null) {
                 // 能耗与剩余电量成反比，剩余电量越少，能耗成本越高
-                totalEnergyCost += (1 - bestNode.powerRemain);
+                // nodeFeatures[2] 是 powerRemain
+                totalEnergyCost += (1 - selection.getNodeFeatures()[2]);
             }
         }
 
         return totalEnergyCost;
+    }
+
+    /**
+     * 为所有任务选择节点（带缓存）
+     * 这是性能优化的核心方法，避免重复计算
+     * @param omega 权重参数
+     * @return 节点选择结果列表
+     */
+    public List<NodeSelectionResult> selectNodesForAllTasks(double[] omega) {
+        // 生成缓存键
+        String cacheKey = generateOmegaKey(omega);
+
+        // 检查缓存
+        List<NodeSelectionResult> cached = selectionCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        // 执行节点选择
+        List<NodeSelectionResult> results = new ArrayList<>();
+
+        for (OptimizationSample sample : samples) {
+            NodeSelectionResult selection = selectBestNode(sample, omega);
+            if (selection != null) {
+                results.add(selection);
+            }
+        }
+
+        // 存入缓存
+        selectionCache.put(cacheKey, results);
+
+        return results;
+    }
+
+    /**
+     * 为单个任务选择最佳节点
+     * @param sample 任务样本
+     * @param omega 权重参数
+     * @return 节点选择结果
+     */
+    private NodeSelectionResult selectBestNode(OptimizationSample sample, double[] omega) {
+        List<double[]> candidates = sample.getCandidateNodeFeatures();
+        if (candidates == null || candidates.isEmpty()) {
+            return null;
+        }
+
+        int bestIndex = 0;
+        double maxScore = Double.NEGATIVE_INFINITY;
+        double[] bestFeatures = null;
+
+        for (int i = 0; i < candidates.size(); i++) {
+            double[] features = candidates.get(i);
+            double score = calculateLoadScore(features, omega);
+
+            if (score > maxScore) {
+                maxScore = score;
+                bestIndex = i;
+                bestFeatures = features;
+            }
+        }
+
+        return NodeSelectionResult.builder()
+                .taskId(sample.getTaskId())
+                .selectedNodeIndex(bestIndex)
+                .loadScore(maxScore)
+                .nodeFeatures(bestFeatures)
+                .build();
+    }
+
+    /**
+     * 生成omega参数的缓存键
+     * @param omega 权重参数
+     * @return 缓存键
+     */
+    private String generateOmegaKey(double[] omega) {
+        // 使用4位小数精度生成键
+        StringBuilder sb = new StringBuilder();
+        for (double w : omega) {
+            sb.append(String.format("%.4f_", w));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 清除选择缓存
+     */
+    public void clearSelectionCache() {
+        selectionCache.clear();
     }
 }

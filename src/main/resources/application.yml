@@ -47,6 +47,7 @@ mqtt:
 
 # 参数优化配置
 optimization:
+  sample-limit: 500                   # 最新样本数量限制
   nsga2:
     population-size: 100              # 种群大小
     max-evaluations: 1000             # 最大评估次数

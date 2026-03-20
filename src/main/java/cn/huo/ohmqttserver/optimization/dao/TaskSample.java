@@ -2,7 +2,10 @@ package cn.huo.ohmqttserver.optimization.dao;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false, exclude = {"nodes"})
+@EntityListeners(AuditingEntityListener.class)
 public class TaskSample {
 
 	@Id
@@ -32,6 +36,13 @@ public class TaskSample {
 	private NodeStatus choseNode;
 
 	private Double duration;
+
+	/**
+	 * 样本创建时间，用于获取最新样本
+	 */
+	@CreatedDate
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
 
 	public TaskSample(String taskId,List<NodeStatus> nodes, NodeStatus choseNode, Double duration) {
 		this.taskId = taskId;

@@ -37,8 +37,7 @@ class OhMqttServerApplicationTests {
 	}
 	@Test
 	void testOptimizeWithBalancedLoadSamples() {
-		// 均衡负载场景测试数据：CPU权重较大的参数配置环境
-		// 测试数据为非理想选择：CPU低但内存高的节点，结果应该降低cpu的权重
+		// 均衡负载场景测试数据：模拟当前未考虑负载均衡，选择的节点cpu占用很低，但内存占用很高（应该降低cpu的权重）
 		List<OptimizationSample> balancedLoadSamples = Arrays.asList(
 			createSample("balanced_load_cpu_heavy_1",
 				Arrays.asList(
@@ -46,7 +45,7 @@ class OhMqttServerApplicationTests {
 					new double[]{0.7, 0.3, 0.6, 0.5, 0.4}, // CPU高但内存低的节点
 					new double[]{0.5, 0.5, 0.6, 0.5, 0.4}  // 均衡节点
 				),
-				0, 10.0
+				0, 10.0 //节点cpu占用很低，但内存占用很高
 			),
 			createSample("balanced_load_cpu_heavy_2",
 				Arrays.asList(
@@ -156,9 +155,8 @@ class OhMqttServerApplicationTests {
 	}
 
 	@Test
-	void testOptimizeWithNormalSamples() {
-		// 电量敏感场景测试数据：对电量因素敏感的场景环境
-		// 测试数据为非理想选择：CPU低且电量低的节点，结果应该提高电量的权重
+	void testOptimizeWithPowerSensitiveSamples() {
+		// 电量敏感场景测试数据：模拟当前的决策缺少对电量的考虑，选择的节点cpu占用很低，但电量也很低（应该提高电量的权重）
 		List<OptimizationSample> powerSensitiveSamples = Arrays.asList(
 			createSample("power_sensitive_low_power_1",
 				Arrays.asList(
@@ -166,7 +164,7 @@ class OhMqttServerApplicationTests {
 					new double[]{0.6, 0.5, 0.8, 0.5, 0.4}, // 负载高但电量充足的节点
 					new double[]{0.4, 0.4, 0.5, 0.6, 0.3}  // 均衡节点
 				),
-				0, 8.0
+				0, 8.0//选择的节点cpu占用很低，但电量也很低
 			),
 			createSample("power_sensitive_low_power_2",
 				Arrays.asList(
